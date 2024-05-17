@@ -10,6 +10,54 @@ import matplotlib.pyplot as plt
 from model_classes import *
 
 
+#####################################################
+############### STATIC METHODS ######################
+#####################################################
+
+def mesh_file_to_scene(mesh_file):
+    c_model = trimesh.load_mesh(mesh_file)
+
+    if type(c_model) == trimesh.base.Trimesh:
+        mesh = pyrender.Mesh.from_trimesh(c_model)
+        scene = pyrender.Scene()
+        scene.add(mesh)
+    elif type(c_model) == trimesh.scene.scene.Scene:
+        scene = pyrender.Scene.from_trimesh_scene(c_model)
+    else:
+        raise ValueError("Modeltype not known. Type: " + type(c_model) + " |  from file: " + mesh_file)
+
+    return scene
+
+
+def files_in_dir(dir, name_end):
+    # searches directory and all subdirectorys for files ending with name_end
+    # returns paths to all these files
+    file_paths = []
+    for root, dirs, files in os.walk(dir):
+        for file in files:
+            if file.endswith(name_end):
+                file_paths.append(os.path.join(root, file))
+
+    return file_paths
+
+
+def convert_to_black_white(image):
+    # calculate lighness by summing up rgbs
+    image = image.sum(axis=2)  # todo: there is a better meassures for lighness
+    # background is white, thus turning every not white pixel black
+    return image <= 3 * 255 - 10
+
+
+def create_sample_points(image):
+    # TODO finish function
+
+    return np.array([])
+
+
+#####################################################
+################## DATA LOADER ######################
+#####################################################
+
 class DataLoader:
     # todo: many more parameters will be passed to this class, find good way to do that, without making it messy
     # todo: make that multiple classes or an arbitrary class that is not bottle can be loaded
@@ -75,23 +123,14 @@ class DataLoader:
             return
 
         # Load ShapeNet dataset for class
-        mesh_files = self.files_in_dir(
+        mesh_files = files_in_dir(
             os.path.join(self.input_path, cls.name),
             '.obj')
 
         print("Converting ", len(mesh_files), " files ...")
         for mesh_file in mesh_files:
             # Render mesh to 2D image
-            c_model = trimesh.load_mesh(mesh_file)
-
-            if type(c_model) == trimesh.base.Trimesh:
-                mesh = pyrender.Mesh.from_trimesh(c_model)
-                scene = pyrender.Scene()
-                scene.add(mesh)
-            elif type(c_model) == trimesh.scene.scene.Scene:
-                scene = pyrender.Scene.from_trimesh_scene(c_model)
-            else:
-                raise ValueError("Modeltype not known. Type: " + type(c_model) + " |  from file: " + mesh_file)
+            scene = mesh_file_to_scene(mesh_files)
 
             # add camera
             camera = pyrender.OrthographicCamera(xmag=1.0, ymag=1.0)
@@ -106,7 +145,7 @@ class DataLoader:
             # add no light on purpose to the scene
             renderer = pyrender.OffscreenRenderer(viewport_width=self.res, viewport_height=self.res)
             image, depth = renderer.render(scene)
-            image = self.convert_to_black_white(image)
+            image = convert_to_black_white(image)
 
             if show_results:
                 # set True, to have a look at the 3d scene
@@ -128,39 +167,27 @@ class DataLoader:
 
             # @JAN: you are to create and store the sample points somewere
             # else in the code if that makes more sense to you
-            sample_points = self.create_sample_points(image)
+            sample_points = create_sample_points(image)
             np.save(sampled_points_path, sample_points)
 
-    def create_sample_points(self, image):
-        # TODO finish function
-
-        return np.array([])
-
-    def convert_to_black_white(self, image):
-        # calculate lighness by summing up rgbs
-        image = image.sum(axis=2)  # todo: there is a better meassures for lighness
-        # background is white, thus turning every not white pixel black
-        return image <= 3 * 255 - 10
-
-    def display_random_3d_samples(self, cls: ModelClass, num_samples=5):
+    def display_random_3d_samples(self, num_samples=5):
         # todo: some samples from the dataset can not be displayed using this code
 
-        self.download_dataset()
-        shape_path = os.path.join(self.input_path, cls.id)
+        self.download_dataset(redownload=False)
+        shape_path = os.path.join(self.input_path)
 
-        mesh_files = self.files_in_dir(shape_path, '.obj')
+        mesh_files = files_in_dir(shape_path, '.obj')
 
         sample_files = random.sample(mesh_files, num_samples)
 
         for sample_file in sample_files:
-            c_trimesh = trimesh.load_mesh(sample_file)
-            scene = pyrender.Scene.from_trimesh_scene(c_trimesh)
+            scene = mesh_file_to_scene(sample_file)
             pyrender.Viewer(scene, use_raymond_lighting=True, viewport_size=(800, 600))
 
     def display_random_2d_samples(self, num_samples=5):
         # todo: also plot sample points on top of image
 
-        image_files = self.files_in_dir(self.output_path, 'image.npy')
+        image_files = files_in_dir(self.output_path, 'image.npy')
 
         if len(image_files) == 0:
             print("No 2D images found. Please run the conversion first.")
@@ -176,15 +203,6 @@ class DataLoader:
             ax.axis('off')
         plt.show()
 
-    def files_in_dir(self, dir, name_end):
-        file_paths = []
-        for root, dirs, files in os.walk(dir):
-            for file in files:
-                if file.endswith(name_end):
-                    file_paths.append(os.path.join(root, file))
-
-        return file_paths
-
 
 # Example usage:
 dataloader = DataLoader(
@@ -192,9 +210,9 @@ dataloader = DataLoader(
 )
 
 # run this line to see whether you can download the data from shapenet and display the files correctly
-#dataloader.display_random_3d_samples()
+#dataloader.display_random_3d_samples(num_samples=10)
 
 # run these to lines to check whether you can convert the models to 2d, find sample points (todo) and
 # save and load the results correctly
 dataloader.generate_2d_dataset(show_results=False, regenerate=False)
-dataloader.display_random_2d_samples()
+dataloader.display_random_2d_samples(num_samples=5)
