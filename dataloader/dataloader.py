@@ -45,7 +45,7 @@ def convert_to_black_white(image):
     # calculate lighness by summing up rgbs
     image = image.sum(axis=2)  # todo: there is a better meassures for lighness
     # background is white, thus turning every not white pixel black
-    return image <= 3 * 255 - 10
+    return image <= 3 * 255 - 2
 
 
 def create_sample_points(image):
@@ -70,9 +70,7 @@ class DataLoader:
                  classes=[Bottle()]
                  ):
 
-        self.bottle_id = '02876657'  # ShapeNetCore.v1 ID for 'bottle'
         self.res = res
-
         self.classes = classes
 
     def create_traning_and_validation_batches(self):
@@ -130,7 +128,7 @@ class DataLoader:
         print("Converting ", len(mesh_files), " files ...")
         for mesh_file in mesh_files:
             # Render mesh to 2D image
-            scene = mesh_file_to_scene(mesh_files)
+            scene = mesh_file_to_scene(mesh_file)
 
             # add camera
             camera = pyrender.OrthographicCamera(xmag=1.0, ymag=1.0)
