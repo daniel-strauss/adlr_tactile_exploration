@@ -26,7 +26,8 @@ and the 2D images.
 - **Automatic Downloading**: Downloads the ShapeNet "bottle" dataset if not already present.
 - **Conversion to 2D Images**: Converts 3D models to 2D images using Pyrender.
 - **Randomly sampling points:**
-- **Sample Visualization**: Displays random samples from the original 3D models and the converted 2D images.
+- **Sample Visualization**: Displays random samples from the original 3D models and the converted 2D images for 
+testing purposes.
 
 #### Usage
 
