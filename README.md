@@ -1,10 +1,16 @@
 # tum-adlr-02
 
-## Dependencies
+## Requirements
 
 - Python 3.10
-- TODO add other requirements
 
+- Python Packages:
+  - requests
+  - zipfile
+  - numpy
+  - pyrender
+  - trimesh
+  - matplotlib
 
 ## Documentation
 
