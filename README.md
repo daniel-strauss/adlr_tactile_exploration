@@ -28,5 +28,5 @@ It downloads the dataset, converts 3D models to 2D images, generates randomly se
 
 #### Usage
 
-An example usage is provided at the bottom of the file `dataloader.py`
+An example usage is provided at the bottom of the file `dataconverter.py`
 
