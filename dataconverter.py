@@ -25,7 +25,6 @@ def mesh_file_to_scene(mesh_file):
         scene = pyrender.Scene.from_trimesh_scene(c_model)
     else:
         raise ValueError("Modeltype not known. Type: " + type(c_model) + " |  from file: " + mesh_file)
-
     return scene
 
 
@@ -41,24 +40,77 @@ def files_in_dir(dir, name_end):
     return file_paths
 
 
-def convert_to_black_white(image):
-    # calculate lighness by summing up rgbs
-    image = image.sum(axis=2)  # todo: there is a better meassures for lighness
-    # background is white, thus turning every not white pixel black
-    return image <= 3 * 255 - 2
+def convert_to_boolean_image(image):
+    # Convert object pixels to 1 by using depth map. Background is zero
+    return image > 0
+
+def find_outline(image):
+    # Only returns returnable outline. Iteratively approximates outline from both sides for each dimension.
+    # Removes duplicates from corners afterwards
+    r, c = image.shape
+    xy = []
+
+    # Left and right
+    for i in range(r):
+        p = 0
+        q = c - 1
+        while p <= q and not image[i, p]:
+            p +=1
+        while p <= q and not image[i, q]:
+            q -= 1
+        if p <= q:
+            xy.append([i,p])
+            xy.append([i,q])
+    
+    # Top and bottom
+    for i in range(c):
+        p = 0
+        q = r - 1
+        while p <= q and not image[p, i]:
+            p +=1
+        while p <= q and not image[q, i]:
+            q -= 1
+        if p <= q:
+            xy.append([p,i])
+            xy.append([q,i])
+    
+    xy = np.array(xy)
+    xy = np.unique(xy, axis=0)
+
+    return xy
+
+def find_outline_old(image):
+    # returns the points of the outline by checking if for every pixel of the object at least one neighboring pixel is background
+    # todo: avoid holes in object
+    w, h = image.shape
+    xy = []
+    for i in range(w):
+        for j in range(h):
+            if image[i, j] and not (image[max(0, i-1), j] and image[i, max(0, j-1)] and image[min(w-1, i+1), j] and image[i, min(h-1, j+1)]):
+                xy.append([i, j])
+    return np.array(xy)
+
+def generate_tactile_images(outline, path, res=250, amount=10, order=5):
+    # generates 'amount' images of tactile points for each number of total tactile points up to 'order'
+    r, _ = outline.shape
+    for o in range(1, order+1):
+        for n in range(amount):
+            idx = np.random.choice(r, o)
+            points = outline[idx,:]
+            image = np.full((res, res), False)
+            image[points[:,0], points[:,1]] = True
+            
+            file_path = os.path.join(path, f"o{o}n{n}tactile.npy")
+            np.save(file_path, image)
 
 
-def create_sample_points(image):
-    # TODO finish function
-
-    return np.array([])
 
 
 #####################################################
-################## DATA LOADER ######################
+################## DATA CONVERTER ###################
 #####################################################
 
-class DataLoader:
+class DataConverter:
     # todo: many more parameters will be passed to this class, find good way to do that, without making it messy
     # todo: make that multiple classes or an arbitrary class that is not bottle can be loaded
 
@@ -67,16 +119,18 @@ class DataLoader:
 
     def __init__(self,
                  res=250,
-                 classes=[Bottle()]
+                 classes=[Bottle()],
+                 tact_order=5,
+                 tact_number=10
                  ):
 
         self.res = res
         self.classes = classes
 
-    def create_traning_and_validation_batches(self):
-        # todo: create training and validation batches and load them into main memory somehow such that no time is lost
-        # during training when loading from disk. at i2dl they did it also somehow, but I forgot
-        pass
+        # Maximum number of tactile points per dataset
+        self.tact_order = tact_order
+        # Number of sampled tactile images per order of tactile points
+        self.tact_number = tact_number
 
     def download_dataset(self, redownload=True):
 
@@ -101,9 +155,9 @@ class DataLoader:
             else:
                 print("class " + cls.name + " already downloaedd. Skipping download.")
 
-    def generate_2d_dataset(self, regenerate=True, show_results=False):
+    def generate_2d_dataset(self, regenerate=True, show_results=False, redownload=False):
 
-        self.download_dataset(redownload=regenerate)
+        self.download_dataset(redownload=redownload)
 
         # create output directory, if it doesnt exist
         if not os.path.exists(self.output_path):
@@ -142,8 +196,8 @@ class DataLoader:
             scene.add(camera, pose=camera_pose)
             # add no light on purpose to the scene
             renderer = pyrender.OffscreenRenderer(viewport_width=self.res, viewport_height=self.res)
-            image, depth = renderer.render(scene)
-            image = convert_to_black_white(image)
+            _, depth = renderer.render(scene)
+            image = convert_to_boolean_image(depth)
 
             if show_results:
                 # set True, to have a look at the 3d scene
@@ -158,15 +212,15 @@ class DataLoader:
             data_id = mesh_file.split(os.sep)[-2]
             data_path = os.path.join(self.output_path, cls.name, data_id)
             image_path = os.path.join(data_path, "image.npy")
-            sampled_points_path = os.path.join(data_path, "sample_points.npy")
-            os.makedirs(data_path, exist_ok=True)
-
+            outline_path = os.path.join(data_path, "outline.npy")
+            tactile_path = os.path.join(data_path, "tactile_points")
+            os.makedirs(tactile_path, exist_ok=True)
             np.save(image_path, image)
 
-            # @JAN: you are to create and store the sample points somewere
-            # else in the code if that makes more sense to you
-            sample_points = create_sample_points(image)
-            np.save(sampled_points_path, sample_points)
+            # Generate and save tactile point images
+            outline = find_outline(image)
+            np.save(outline_path, outline)
+            generate_tactile_images(outline, tactile_path, self.res, amount=self.tact_number, order=self.tact_order)
 
     def display_random_3d_samples(self, num_samples=5):
         # todo: some samples from the dataset can not be displayed using this code
@@ -200,17 +254,48 @@ class DataLoader:
             ax.imshow(img)
             ax.axis('off')
         plt.show()
+    
+    def display_random_data_pairs(self, num_samples=5):
 
+        image_files = files_in_dir(self.output_path, 'image.npy')
 
-# Example usage:
-dataloader = DataLoader(
+        if len(image_files) == 0:
+            print("No 2D images found. Please run the conversion first.")
+            return
+        
+        num_samples = min(len(image_files), num_samples)
+        sample_files = random.sample(image_files, num_samples)
+
+        fig, axes = plt.subplots(num_samples, 2, figsize=(80,80))
+        fig.tight_layout()
+        for i in range(num_samples):
+            sample_file = sample_files[i]
+            img = np.load(sample_file)
+            tactile_path = os.path.join(os.path.dirname(sample_file), 'tactile_points')
+            tactile_files = files_in_dir(tactile_path, 'tactile.npy')
+            tactile_file = random.sample(tactile_files, 1)
+            pts = np.load(tactile_file[0])
+
+            axes[i, 0].imshow(img)
+            axes[i, 0].axis('off')
+            axes[i, 1].imshow(pts)
+            axes[i, 1].axis('off')
+        plt.show()
+
+'''
+Example usage:
+
+dataconverter = DataConverter(
     classes=[Mug(), Bottle()]
 )
 
 # run this line to see whether you can download the data from shapenet and display the files correctly
-#dataloader.display_random_3d_samples(num_samples=10)
+dataloader.display_random_3d_samples(num_samples=10)
 
-# run these to lines to check whether you can convert the models to 2d, find sample points (todo) and
+# run these to lines to check whether you can convert the models to 2d, find sample points and
 # save and load the results correctly
-dataloader.generate_2d_dataset(show_results=False, regenerate=False)
-dataloader.display_random_2d_samples(num_samples=5)
+dataconverter.generate_2d_dataset(show_results=False, regenerate=True)
+dataconverter.display_random_2d_samples(num_samples=5)
+
+dataconverter.display_random_data_pairs(self, num_samples=5)
+'''
