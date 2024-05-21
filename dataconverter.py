@@ -45,8 +45,8 @@ def convert_to_boolean_image(image):
     return image > 0
 
 def find_outline(image):
-    # Only returns returnable outline. Iteratively approximates outline from both sides for each dimension.
-    # Removes duplicates from corners afterwards
+    # Only returns reachable outline and avoids inner holes. Iteratively approximates outline from both sides for each dimension.
+    # Removes duplicates from corners afterwards.
     r, c = image.shape
     xy = []
 
