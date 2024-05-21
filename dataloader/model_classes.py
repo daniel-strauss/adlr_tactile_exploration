@@ -7,6 +7,7 @@ parameters for that calculation should be adapted.
 '''
 import string
 
+
 class ModelClass():
     name: string
     id: string
@@ -14,11 +15,12 @@ class ModelClass():
     def get_url(self):
         return 'http://shapenet.cs.stanford.edu/shapenet/obj-zip/ShapeNetCore.v1/' + self.id + '.zip'
 
+
 class Bottle(ModelClass):
     name = 'bottle'
     id = '02876657'
 
-class Mug(ModelClass):
-        name = 'mug'
-        id = '03797390'
 
+class Mug(ModelClass):
+    name = 'mug'
+    id = '03797390'

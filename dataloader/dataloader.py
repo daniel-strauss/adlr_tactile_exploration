@@ -212,5 +212,5 @@ dataloader = DataLoader(
 
 # run these to lines to check whether you can convert the models to 2d, find sample points (todo) and
 # save and load the results correctly
-dataloader.generate_2d_dataset(show_results=False, regenerate=False)
+dataloader.generate_2d_dataset(show_results=False, regenerate=True)
 dataloader.display_random_2d_samples(num_samples=5)
