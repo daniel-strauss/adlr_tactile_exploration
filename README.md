@@ -11,6 +11,11 @@
   - pyrender
   - trimesh
   - matplotlib
+  - torch
+  - torchvision
+  - torchaudio
+  - pandas
+  - scikit-image
 
 ## Documentation
 
