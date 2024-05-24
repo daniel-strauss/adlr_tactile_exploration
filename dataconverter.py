@@ -6,6 +6,7 @@ import pyrender
 import trimesh
 import random
 import matplotlib.pyplot as plt
+import pandas as pd
 ########################################
 from model_classes import *
 
@@ -90,19 +91,21 @@ def find_outline_old(image):
                 xy.append([i, j])
     return np.array(xy)
 
-def generate_tactile_images(outline, path, res=250, amount=10, order=5):
+def generate_tactile_images(outline, path, l_path, l_label_path, res=250, amount=10, order=5):
     # generates 'amount' images of tactile points for each number of total tactile points up to 'order'
-    r, _ = outline.shape
-    for o in range(1, order+1):
-        for n in range(amount):
-            idx = np.random.choice(r, o)
-            points = outline[idx,:]
-            image = np.full((res, res), False)
-            image[points[:,0], points[:,1]] = True
-            
-            file_path = os.path.join(path, f"o{o}n{n}tactile.npy")
-            np.save(file_path, image)
-
+        r, _ = outline.shape
+        paths = []
+        for o in range(1, order+1):
+            for n in range(amount):
+                idx = np.random.choice(r, o)
+                points = outline[idx,:]
+                image = np.full((res, res), False)
+                image[points[:,0], points[:,1]] = True
+                
+                file_path = os.path.join(path, f"o{o}n{n}tactile.npy")
+                paths.append([os.path.join(l_path, f"o{o}n{n}tactile.npy"), l_label_path])
+                np.save(file_path, image)
+        return pd.DataFrame(paths, columns=['image', 'label'])
 
 
 
@@ -163,16 +166,32 @@ class DataConverter:
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
 
+        frames = []
+
+        # csv_path = os.path.join(self.output_path, 'annotations.csv')
+        # if os.path.exists(csv_path):
+        #     df = pd.read_csv(csv_path)
+        #     df.reset_index(drop=True, inplace=True)
+        #     frames.append(df)
+
         for cls in self.classes:
-            self.generate_2d_dataset_aux(cls, regenerate=regenerate, show_results=show_results)
+            # Check if conversion has been done before
+            if (not regenerate
+                    and os.path.exists(os.path.join(self.output_path, cls.name))):
+                print("2D images for class" + cls.name + " already exist. Skipping conversion.")
+                continue
+            df = self.generate_2d_dataset_aux(cls, regenerate=regenerate, show_results=show_results)
+            frames.append(df)
+        
+        if frames:
+            df = pd.concat(frames, ignore_index=True)
+            df.reset_index(drop=True, inplace=True)
+            df.to_csv(csv_path)
+            
 
     def generate_2d_dataset_aux(self, cls: ModelClass, regenerate=True, show_results=False):
 
-        # Check if conversion has been done before
-        if (not regenerate
-                and os.path.exists(os.path.join(self.output_path, cls.name))):
-            print("2D images for class" + cls.name + " already exist. Skipping conversion.")
-            return
+        frames = []
 
         # Load ShapeNet dataset for class
         mesh_files = files_in_dir(
@@ -208,19 +227,29 @@ class DataConverter:
 
             renderer.delete()
 
+            # TODO: Simplify the following block
+
             # Save 2D image
             data_id = mesh_file.split(os.sep)[-2]
-            data_path = os.path.join(self.output_path, cls.name, data_id)
+            local_path = os.path.join(cls.name, data_id)
+            data_path = os.path.join(self.output_path, local_path)
             image_path = os.path.join(data_path, "image.npy")
+            l_image_path = os.path.join(local_path, "image.npy")
             outline_path = os.path.join(data_path, "outline.npy")
             tactile_path = os.path.join(data_path, "tactile_points")
+            l_tactile_path = os.path.join(local_path, "tactile_points")
+
             os.makedirs(tactile_path, exist_ok=True)
             np.save(image_path, image)
 
             # Generate and save tactile point images
             outline = find_outline(image)
             np.save(outline_path, outline)
-            generate_tactile_images(outline, tactile_path, self.res, amount=self.tact_number, order=self.tact_order)
+            df = generate_tactile_images(outline, tactile_path, l_tactile_path, l_image_path, self.res, amount=self.tact_number, order=self.tact_order)
+            frames.append(df)
+        df = pd.concat(frames, ignore_index=True)
+        df.reset_index(drop=True, inplace=True)
+        return df
 
     def display_random_3d_samples(self, num_samples=5):
         # todo: some samples from the dataset can not be displayed using this code
