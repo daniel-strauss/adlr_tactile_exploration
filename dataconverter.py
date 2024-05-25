@@ -168,7 +168,7 @@ class DataConverter:
 
         frames = []
 
-        # csv_path = os.path.join(self.output_path, 'annotations.csv')
+        csv_path = os.path.join(self.output_path, 'annotations.csv')
         # if os.path.exists(csv_path):
         #     df = pd.read_csv(csv_path)
         #     df.reset_index(drop=True, inplace=True)
@@ -186,7 +186,7 @@ class DataConverter:
         if frames:
             df = pd.concat(frames, ignore_index=True)
             df.reset_index(drop=True, inplace=True)
-            df.to_csv(csv_path)
+            df.to_csv(csv_path, index=False)
             
 
     def generate_2d_dataset_aux(self, cls: ModelClass, regenerate=True, show_results=False):

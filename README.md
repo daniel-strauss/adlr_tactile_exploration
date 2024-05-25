@@ -16,6 +16,8 @@
   - torchaudio
   - pandas
   - scikit-image
+  - jupyter
+  - notebook
 
 ## Documentation
 
