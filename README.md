@@ -7,6 +7,7 @@
 - hyperparameters should be passed in a nicer way to network
 - train network in cloud
 - use dataloader/dataconverter to store data as float 
+- when using DataLoader one should be able to decide which datasets (only mugs, mugs and bottles, only bottles) to use
 
 ## Requirements
 
