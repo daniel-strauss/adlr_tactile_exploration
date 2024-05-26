@@ -1,5 +1,12 @@
 # tum-adlr-02
 
+## TODOs
+
+- add training and validation sets
+- correctly display reconstructed data pairs in tensorboard
+- hyperparameters should be passed in a nicer way to network
+- train network in could
+
 ## Requirements
 
 - Python 3.10

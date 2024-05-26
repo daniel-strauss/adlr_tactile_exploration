@@ -15,6 +15,11 @@ from model_classes import *
 ############### STATIC METHODS ######################
 #####################################################
 
+# grayscale images should be of shape [1,res,res] instead of [res,res] for the
+# network to work
+def add_channel(image):
+    return np.array([image])
+
 def mesh_file_to_scene(mesh_file):
     c_model = trimesh.load_mesh(mesh_file)
 
@@ -104,7 +109,7 @@ def generate_tactile_images(outline, path, l_path, l_label_path, res=250, amount
                 
                 file_path = os.path.join(path, f"o{o}n{n}tactile.npy")
                 paths.append([os.path.join(l_path, f"o{o}n{n}tactile.npy"), l_label_path])
-                np.save(file_path, image)
+                np.save(file_path, add_channel(image))
         return pd.DataFrame(paths, columns=['image', 'label'])
 
 
@@ -117,11 +122,11 @@ class DataConverter:
     # todo: many more parameters will be passed to this class, find good way to do that, without making it messy
     # todo: make that multiple classes or an arbitrary class that is not bottle can be loaded
 
-    input_path = './input_data/3D_shapes'
-    output_path = './input_data/2D_shapes'
+    input_path = './datasets/3D_shapes'
+    output_path = './datasets/2D_shapes'
 
     def __init__(self,
-                 res=250,
+                 res=256,
                  classes=[Bottle()],
                  tact_order=5,
                  tact_number=10
@@ -239,12 +244,13 @@ class DataConverter:
             tactile_path = os.path.join(data_path, "tactile_points")
             l_tactile_path = os.path.join(local_path, "tactile_points")
 
+
             os.makedirs(tactile_path, exist_ok=True)
-            np.save(image_path, image)
+            np.save(image_path, add_channel(image))
 
             # Generate and save tactile point images
             outline = find_outline(image)
-            np.save(outline_path, outline)
+            np.save(outline_path, add_channel(outline))
             df = generate_tactile_images(outline, tactile_path, l_tactile_path, l_image_path, self.res, amount=self.tact_number, order=self.tact_order)
             frames.append(df)
         df = pd.concat(frames, ignore_index=True)
@@ -279,7 +285,7 @@ class DataConverter:
 
         fig, axes = plt.subplots(1, num_samples, figsize=(20, 5))
         for ax, sample_file in zip(axes, sample_files):
-            img = np.load(sample_file)
+            img = np.load(sample_file)[0]
             ax.imshow(img)
             ax.axis('off')
         plt.show()
@@ -305,21 +311,23 @@ class DataConverter:
             tactile_file = random.sample(tactile_files, 1)
             pts = np.load(tactile_file[0])
 
-            axes[i, 0].imshow(img)
+            axes[i, 0].imshow(img[0])
             axes[i, 0].axis('off')
-            axes[i, 1].imshow(pts)
+            axes[i, 1].imshow(pts[0])
             axes[i, 1].axis('off')
         plt.show()
 
-'''
-Example usage:
+
+#Example usage:
 
 dataconverter = DataConverter(
-    classes=[Mug(), Bottle()]
+    classes=[Mug(), Bottle()],
+
+
 )
 
 # run this line to see whether you can download the data from shapenet and display the files correctly
-dataloader.display_random_3d_samples(num_samples=10)
+#dataloader.display_random_3d_samples(num_samples=10)
 
 # run these to lines to check whether you can convert the models to 2d, find sample points and
 # save and load the results correctly
@@ -327,5 +335,4 @@ dataloader.display_random_3d_samples(num_samples=10)
 dataconverter.generate_2d_dataset(show_results=False, regenerate=True)
 dataconverter.display_random_2d_samples(num_samples=5)
 
-dataconverter.display_random_data_pairs(self, num_samples=5)
-'''
+dataconverter.display_random_data_pairs(num_samples=5)
