@@ -339,8 +339,7 @@ dataconverter.display_random_data_pairs(num_samples=5)
 if __name__ == "__main__":
     # generate data
     dataconverter = DataConverter(
-        classes=[Mug(), Bottle()],
-        tact_order = 30
+        classes=[Mug(), Bottle()]
     )
     # set regenerate to true, if you run this after changes in dataconverter have been made
     dataconverter.generate_2d_dataset(show_results=False, regenerate=True)
