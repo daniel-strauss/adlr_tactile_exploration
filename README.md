@@ -5,7 +5,8 @@
 - add training and validation sets
 - correctly display reconstructed data pairs in tensorboard
 - hyperparameters should be passed in a nicer way to network
-- train network in could
+- train network in cloud
+- use dataloader/dataconverter to store data as float 
 
 ## Requirements
 
