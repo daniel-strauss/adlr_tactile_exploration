@@ -8,7 +8,7 @@ import random
 import matplotlib.pyplot as plt
 import pandas as pd
 ########################################
-from model_classes import *
+from data.model_classes import *
 
 
 #####################################################
@@ -319,11 +319,9 @@ class DataConverter:
 
 
 #Example usage:
-
+'''
 dataconverter = DataConverter(
     classes=[Mug(), Bottle()],
-
-
 )
 
 # run this line to see whether you can download the data from shapenet and display the files correctly
@@ -336,3 +334,13 @@ dataconverter.generate_2d_dataset(show_results=False, regenerate=True)
 dataconverter.display_random_2d_samples(num_samples=5)
 
 dataconverter.display_random_data_pairs(num_samples=5)
+'''
+
+if __name__ == "__main__":
+    # generate data
+    dataconverter = DataConverter(
+        classes=[Mug(), Bottle()],
+        tact_order = 30
+    )
+    # set regenerate to true, if you run this after changes in dataconverter have been made
+    dataconverter.generate_2d_dataset(show_results=False, regenerate=True)
