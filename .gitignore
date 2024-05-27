@@ -2,3 +2,4 @@ datasets/
 __pycache__
 testing.ipynb
 runs/
+.ipynb_checkpoints
