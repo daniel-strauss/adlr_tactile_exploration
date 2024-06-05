@@ -20,6 +20,7 @@ from data.model_classes import *
 def add_channel(image):
     return np.array([image])
 
+
 def mesh_file_to_scene(mesh_file):
     c_model = trimesh.load_mesh(mesh_file)
 
@@ -50,6 +51,7 @@ def convert_to_boolean_image(image):
     # Convert object pixels to 1 by using depth map. Background is zero
     return image > 0
 
+
 def find_outline(image):
     # Only returns reachable outline and avoids inner holes. Iteratively approximates outline from both sides for each dimension.
     # Removes duplicates from corners afterwards.
@@ -61,29 +63,30 @@ def find_outline(image):
         p = 0
         q = c - 1
         while p <= q and not image[i, p]:
-            p +=1
+            p += 1
         while p <= q and not image[i, q]:
             q -= 1
         if p <= q:
-            xy.append([i,p])
-            xy.append([i,q])
-    
+            xy.append([i, p])
+            xy.append([i, q])
+
     # Top and bottom
     for i in range(c):
         p = 0
         q = r - 1
         while p <= q and not image[p, i]:
-            p +=1
+            p += 1
         while p <= q and not image[q, i]:
             q -= 1
         if p <= q:
-            xy.append([p,i])
-            xy.append([q,i])
-    
+            xy.append([p, i])
+            xy.append([q, i])
+
     xy = np.array(xy)
     xy = np.unique(xy, axis=0)
 
     return xy
+
 
 def find_outline_old(image):
     # returns the points of the outline by checking if for every pixel of the object at least one neighboring pixel is background
@@ -92,30 +95,34 @@ def find_outline_old(image):
     xy = []
     for i in range(w):
         for j in range(h):
-            if image[i, j] and not (image[max(0, i-1), j] and image[i, max(0, j-1)] and image[min(w-1, i+1), j] and image[i, min(h-1, j+1)]):
+            if image[i, j] and not (
+                    image[max(0, i - 1), j] and image[i, max(0, j - 1)] and image[min(w - 1, i + 1), j] and image[
+                i, min(h - 1, j + 1)]):
                 xy.append([i, j])
     return np.array(xy)
+
 
 def generate_tactile_images(outline, path, l_path, l_label_path, res=250, amount=10, order=5, min_order=1,
                             save_float=True):
     # generates 'amount' images of tactile points for each number of total tactile points up to 'order'
-        r, _ = outline.shape
-        paths = []
-        for o in range(min_order, order+1):
-            for n in range(amount):
-                idx = np.random.choice(r, o)
-                points = outline[idx,:]
-                image = np.full((res, res), False)
-                image[points[:,0], points[:,1]] = True
-                
-                file_path = os.path.join(path, f"o{o}n{n}tactile.npy")
-                paths.append([os.path.join(l_path, f"o{o}n{n}tactile.npy"), l_label_path])
-                np_save(file_path, image, save_float)
-        return pd.DataFrame(paths, columns=['image', 'label'])
+    r, _ = outline.shape
+    paths = []
+    for o in range(min_order, order + 1):
+        for n in range(amount):
+            idx = np.random.choice(r, o)
+            points = outline[idx, :]
+            image = np.full((res, res), False)
+            image[points[:, 0], points[:, 1]] = True
+
+            file_path = os.path.join(path, f"o{o}n{n}tactile.npy")
+            paths.append([os.path.join(l_path, f"o{o}n{n}tactile.npy"), l_label_path])
+            np_save(file_path, image, save_float)
+    return pd.DataFrame(paths, columns=['image', 'label'])
+
 
 def np_save(path, image, save_float):
     if save_float:
-        np.save(path, add_channel(image).astype("float64"))
+        np.save(path, add_channel(image).astype("float32"))
     else:
         np.save(path, add_channel(image))
 
@@ -137,7 +144,7 @@ class DataConverter:
                  min_order=1,
                  tact_order=5,
                  tact_number=10,
-                 save_float = True # if false, dataloader will save boolean arraysw
+                 save_float=True  # if false, dataloader will save boolean arraysw
                  ):
 
         self.res = res
@@ -200,12 +207,11 @@ class DataConverter:
                 continue
             df = self.generate_2d_dataset_aux(cls, regenerate=regenerate, show_results=show_results)
             frames.append(df)
-        
+
         if frames:
             df = pd.concat(frames, ignore_index=True)
             df.reset_index(drop=True, inplace=True)
             df.to_csv(csv_path, index=False)
-            
 
     def generate_2d_dataset_aux(self, cls: ModelClass, regenerate=True, show_results=False):
 
@@ -257,7 +263,6 @@ class DataConverter:
             tactile_path = os.path.join(data_path, "tactile_points")
             l_tactile_path = os.path.join(local_path, "tactile_points")
 
-
             os.makedirs(tactile_path, exist_ok=True)
             np_save(image_path, image, self.save_float)
 
@@ -305,7 +310,7 @@ class DataConverter:
             ax.imshow(img)
             ax.axis('off')
         plt.show()
-    
+
     def display_random_data_pairs(self, num_samples=5):
 
         image_files = files_in_dir(self.output_path, 'image.npy')
@@ -313,11 +318,11 @@ class DataConverter:
         if len(image_files) == 0:
             print("No 2D images found. Please run the conversion first.")
             return
-        
+
         num_samples = min(len(image_files), num_samples)
         sample_files = random.sample(image_files, num_samples)
 
-        fig, axes = plt.subplots(num_samples, 2, figsize=(80,80))
+        fig, axes = plt.subplots(num_samples, 2, figsize=(80, 80))
         fig.tight_layout()
         for i in range(num_samples):
             sample_file = sample_files[i]

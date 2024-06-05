@@ -24,6 +24,20 @@ def show_datapair(image, label):
     axs[1].set_axis_off()
 
 
+def show_datatripple(input, label, output):
+    """Show tactile points with object shape"""
+    fig, axs = plt.subplots(1, 3, sharey=True)
+    fig.subplots_adjust(wspace=0)
+    axs[0].imshow(input[0])
+    axs[0].set_axis_off()
+    axs[1].imshow(label[0])
+    axs[1].set_axis_off()
+    axs[2].imshow(output[0])
+    axs[2].set_axis_off()
+
+
+
+
 def show_datapair_batch(sample_batch):
     """Show batch of tactile points with object shape"""
     image_batch, label_batch = sample_batch['image'], sample_batch['label']
