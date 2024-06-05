@@ -96,11 +96,12 @@ def find_outline_old(image):
                 xy.append([i, j])
     return np.array(xy)
 
-def generate_tactile_images(outline, path, l_path, l_label_path, res=250, amount=10, order=5):
+def generate_tactile_images(outline, path, l_path, l_label_path, res=250, amount=10, order=5, min_order=1,
+                            save_float=True):
     # generates 'amount' images of tactile points for each number of total tactile points up to 'order'
         r, _ = outline.shape
         paths = []
-        for o in range(1, order+1):
+        for o in range(min_order, order+1):
             for n in range(amount):
                 idx = np.random.choice(r, o)
                 points = outline[idx,:]
@@ -109,9 +110,14 @@ def generate_tactile_images(outline, path, l_path, l_label_path, res=250, amount
                 
                 file_path = os.path.join(path, f"o{o}n{n}tactile.npy")
                 paths.append([os.path.join(l_path, f"o{o}n{n}tactile.npy"), l_label_path])
-                np.save(file_path, add_channel(image))
+                np_save(file_path, image, save_float)
         return pd.DataFrame(paths, columns=['image', 'label'])
 
+def np_save(path, image, save_float):
+    if save_float:
+        np.save(path, add_channel(image).astype("float64"))
+    else:
+        np.save(path, add_channel(image))
 
 
 #####################################################
@@ -128,17 +134,24 @@ class DataConverter:
     def __init__(self,
                  res=256,
                  classes=[Bottle()],
+                 min_order=1,
                  tact_order=5,
-                 tact_number=10
+                 tact_number=10,
+                 save_float = True # if false, dataloader will save boolean arraysw
                  ):
 
         self.res = res
         self.classes = classes
 
+        # Minimum number of tactile points per dataset
+        self.min_order = min_order
         # Maximum number of tactile points per dataset
         self.tact_order = tact_order
+
         # Number of sampled tactile images per order of tactile points
         self.tact_number = tact_number
+
+        self.save_float = save_float
 
     def download_dataset(self, redownload=True):
 
@@ -246,12 +259,15 @@ class DataConverter:
 
 
             os.makedirs(tactile_path, exist_ok=True)
-            np.save(image_path, add_channel(image))
+            np_save(image_path, image, self.save_float)
 
             # Generate and save tactile point images
             outline = find_outline(image)
-            np.save(outline_path, add_channel(outline))
-            df = generate_tactile_images(outline, tactile_path, l_tactile_path, l_image_path, self.res, amount=self.tact_number, order=self.tact_order)
+            np_save(outline_path, outline, self.save_float)
+
+            df = generate_tactile_images(outline, tactile_path, l_tactile_path, l_image_path, self.res,
+                                         amount=self.tact_number, order=self.tact_order, min_order=self.min_order,
+                                         save_float=self.save_float)
             frames.append(df)
         df = pd.concat(frames, ignore_index=True)
         df.reset_index(drop=True, inplace=True)
