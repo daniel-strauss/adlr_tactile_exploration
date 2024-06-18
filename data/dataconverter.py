@@ -136,10 +136,11 @@ class DataConverter:
 
     def __init__(self,
                  res=256,
-                 classes=[Bottle()],
+                 classes=[Bottle(), Mug()],
                  min_order=1,
                  tact_order=10,
                  tact_number=10,
+                 test_split=0.1,
                  save_float=True  # if false, dataloader will save boolean arraysw
                  ):
 
@@ -154,6 +155,8 @@ class DataConverter:
         # Number of sampled tactile images per order of tactile points
         self.tact_number = tact_number
 
+        # Size of test data split
+        self.test_split = test_split
         self.save_float = save_float
 
     def download_dataset(self, redownload=True):
@@ -195,7 +198,7 @@ class DataConverter:
                 continue
             self.generate_2d_dataset_aux(cls, regenerate=regenerate, show_results=show_results)
         
-        self.generate_dataset_csv()
+        self.generate_dataset_csvs(self.test_split)
 
 
     def generate_2d_dataset_aux(self, cls: ModelClass, regenerate=True, show_results=False):
@@ -253,20 +256,51 @@ class DataConverter:
                                          save_float=self.save_float)
 
 
-    def generate_dataset_csv(self):
-        '''Can be called separately to regenerate annotations CSV, if e.g. we implement a split for test and training data.'''
-        csv_path = os.path.join(self.output_path, 'annotations.csv')
+    def generate_dataset_csvs(self, test_split, verbose = True):
+        '''Can be called separately to regenerate annotations CSV, if e.g. the test split ratio changes or new ShapeNet object classes are converted.'''
+        
+        if verbose:
+            print(f'Generating annotation CSV files for training and testing with a split ratio of {1 - test_split}:{test_split}.')
+        
         imgs = files_in_dir(self.output_path, 'tactile.npy')
         labels = []
 
         for path in imgs:
             label = os.path.join(os.path.dirname(os.path.dirname(path)), 'image.npy')
             labels.append(label)
+        
+        n = len(imgs)
+        print(f'N: {n}')
+        block_size = self.tact_number * (self.tact_order - self.min_order + 1)
+        print(f'Block size: {block_size}')
 
-        with open(csv_path, 'w') as f:
+        if verbose and n % block_size:
+            print('Error: Not all tactile samples were generated correctly!')
+            return
+
+        both = list(zip(imgs, labels))
+        blocks = [both[i:i+block_size] for i in range(0, len(both), block_size)]
+        random.shuffle(blocks)
+        both[:] = [b for bs in blocks for b in bs]
+        imgs, labels = zip(*both)
+        
+        index = block_size * int((n * test_split) / block_size)
+        print(f'Index: {index}')
+        train_csv = os.path.join(self.output_path, 'annotations.csv')
+        test_csv = os.path.join(self.output_path, 'test.csv')
+        
+        with open(test_csv, 'w') as f:
             writer = csv.writer(f)
-            writer.writerows(zip(imgs, labels))
+            writer.writerows(zip(imgs[0:index], labels[0:index]))
         f.close()
+
+        with open(train_csv, 'w') as f:
+            writer = csv.writer(f)
+            writer.writerows(zip(imgs[index+1:], labels[index+1:]))
+        f.close()
+
+        if verbose:
+            print(f'Finished generating annotation CSV files for {n} different shapes.')
    
 
     def display_random_3d_samples(self, num_samples=5):
