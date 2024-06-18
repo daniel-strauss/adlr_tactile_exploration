@@ -142,7 +142,7 @@ class DataConverter:
                  res=256,
                  classes=[Bottle()],
                  min_order=1,
-                 tact_order=5,
+                 tact_order=10,
                  tact_number=10,
                  save_float=True  # if false, dataloader will save boolean arraysw
                  ):

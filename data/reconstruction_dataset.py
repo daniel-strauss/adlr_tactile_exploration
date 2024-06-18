@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 
+from reconstruction_dataset import *
+
 """
 Helper functions for displaying data
 """
@@ -34,8 +36,6 @@ def show_datatripple(input, label, output):
     axs[1].set_axis_off()
     axs[2].imshow(output[0])
     axs[2].set_axis_off()
-
-
 
 
 def show_datapair_batch(sample_batch):
@@ -114,15 +114,31 @@ class ToTensor(object):
 
         return {'image': torch.from_numpy(img),
                 'label': torch.from_numpy(label)}
+    
 
-
-class RandomOrientation(object):
-    """Randomly orientates the image and label."""
+class RandomFlip(object):
+    """Randomly flips the image and label along the vertical axis"""
 
     def __call__(self, sample):
         img, label = sample['image'], sample['label']
 
-        """TODO: Implement random orientation."""
-
+        k = np.random.randint(2)
+        
+        if k:
+            img = np.flip(img, axis=-1)
+            label = np.flip(label, axis=-1)
+        
         return {'image': img,
                 'label': label}
+
+
+class RandomOrientation(object):
+    """Randomly orientates the image and label by a multitude of 90 degrees."""
+
+    def __call__(self, sample):
+        img, label = sample['image'], sample['label']
+
+        k = np.random.randint(4)
+
+        return {'image': np.rot90(img, k, axes=(1, 2)),
+                'label': np.rot90(label, k, axes=(1, 2))}
