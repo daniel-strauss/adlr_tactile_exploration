@@ -293,9 +293,7 @@ class DataConverter:
             labels.append(label)
         
         n = len(imgs)
-        print(f'N: {n}')
         block_size = self.tact_number * (self.tact_order - self.min_order + 1)
-        print(f'Block size: {block_size}')
 
         if verbose and n % block_size:
             print('Error: Not all tactile samples were generated correctly!')
@@ -308,7 +306,6 @@ class DataConverter:
         imgs, labels = zip(*both)
         
         index = block_size * int((n * test_split) / block_size)
-        print(f'Index: {index}')
         train_csv = os.path.join(self.output_path, 'annotations.csv')
         test_csv = os.path.join(self.output_path, 'test.csv')
         
