@@ -141,6 +141,7 @@ class DataConverter:
                  tact_order=10,
                  tact_number=10,
                  test_split=0.1,
+                 rand_rotations=0,
                  save_float=True  # if false, dataloader will save boolean arraysw
                  ):
 
@@ -157,6 +158,9 @@ class DataConverter:
 
         # Size of test data split
         self.test_split = test_split
+
+        self.rand_rotations = rand_rotations
+
         self.save_float = save_float
 
     def download_dataset(self, redownload=True):
@@ -210,50 +214,69 @@ class DataConverter:
 
         print("Converting ", len(mesh_files), " files ...")
         for mesh_file in mesh_files:
-            # Render mesh to 2D image
-            scene = mesh_file_to_scene(mesh_file)
+            if self.rand_rotations < 1:
+                theta = 0
+                self.render_mesh_file(mesh_file, cls, theta, show_results)
+            else:
+                for i in range(self.rand_rotations):
+                    theta = np.random.random() * 2 * np.pi
+                    self.render_mesh_file(mesh_file, cls, theta, show_results, str(i))
+            
 
-            # add camera
-            camera = pyrender.OrthographicCamera(xmag=1.0, ymag=1.0)
-            s = np.sqrt(2) / 2
-            camera_pose = np.array([
-                [0.0, -s, s, 0.3],
-                [1.0, 0.0, 0.0, 0.0],
-                [0.0, s, s, 0.35],
-                [0.0, 0.0, 0.0, 1.0],
-            ])
-            scene.add(camera, pose=camera_pose)
-            # add no light on purpose to the scene
-            renderer = pyrender.OffscreenRenderer(viewport_width=self.res, viewport_height=self.res)
-            _, depth = renderer.render(scene)
-            image = convert_to_boolean_image(depth)
 
-            if show_results:
-                # set True, to have a look at the 3d scene
-                if False:
-                    pyrender.Viewer(scene, use_raymond_lighting=True, viewport_size=(800, 600))
-                plt.imshow(image)
-                plt.pause(.1)
+    def render_mesh_file(self, mesh_file, cls, theta, show_results, id=''):
+        # Render mesh to 2D image
+        scene = mesh_file_to_scene(mesh_file)
 
-            renderer.delete()
+        # add camera
+        camera = pyrender.OrthographicCamera(xmag=1.0, ymag=1.0)
+        s = np.sqrt(2) / 2
+        camera_pose = np.array([
+            [0.0, -s, s, 0.3],
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, s, s, 0.35],
+            [0.0, 0.0, 0.0, 1.0]
+        ])
+        rotation = np.array([
+            [np.cos(theta), -np.sin(theta), 0, 0],
+            [np.sin(theta), np.cos(theta), 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+        ])
+        camera_pose = np.dot(camera_pose, rotation)
 
-            # Save 2D image
-            data_id = mesh_file.split(os.sep)[-2]
-            data_path = os.path.join(self.output_path, cls.name, data_id)
-            image_path = os.path.join(data_path, "image.npy")
-            outline_path = os.path.join(data_path, "outline.npy")
-            tactile_path = os.path.join(data_path, "tactile_points")
+        scene.add(camera, pose=camera_pose)
+        # add no light on purpose to the scene
+        renderer = pyrender.OffscreenRenderer(viewport_width=self.res, viewport_height=self.res)
+        _, depth = renderer.render(scene)
+        image = convert_to_boolean_image(depth)
 
-            os.makedirs(tactile_path, exist_ok=True)
-            np_save(image_path, image, self.save_float)
+        if show_results:
+            # set True, to have a look at the 3d scene
+            if False:
+                pyrender.Viewer(scene, use_raymond_lighting=True, viewport_size=(800, 600))
+            plt.imshow(image)
+            plt.pause(.1)
 
-            # Generate and save tactile point images
-            outline = find_outline(image)
-            np_save(outline_path, outline, self.save_float)
+        renderer.delete()
 
-            generate_tactile_images(outline, tactile_path, self.res,
-                                         amount=self.tact_number, order=self.tact_order, min_order=self.min_order,
-                                         save_float=self.save_float)
+        # Save 2D image
+        data_id = mesh_file.split(os.sep)[-2] + id
+        data_path = os.path.join(self.output_path, cls.name, data_id)
+        image_path = os.path.join(data_path, "image.npy")
+        outline_path = os.path.join(data_path, "outline.npy")
+        tactile_path = os.path.join(data_path, "tactile_points")
+
+        os.makedirs(tactile_path, exist_ok=True)
+        np_save(image_path, image, self.save_float)
+
+        # Generate and save tactile point images
+        outline = find_outline(image)
+        np_save(outline_path, outline, self.save_float)
+
+        generate_tactile_images(outline, tactile_path, self.res,
+                                        amount=self.tact_number, order=self.tact_order, min_order=self.min_order,
+                                        save_float=self.save_float)
 
 
     def generate_dataset_csvs(self, test_split, verbose = True):
