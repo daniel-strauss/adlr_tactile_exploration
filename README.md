@@ -4,10 +4,10 @@
 
 - [x] add training and validation sets
 - [x] correctly display reconstructed data pairs in tensorboard
-- [] hyperparameters should be passed in a nicer way to network
-- [] train network in cloud
+- [ ] hyperparameters should be passed in a nicer way to network
+- [ ] train network in cloud
 - [x] use dataloader/dataconverter to store data as float 
-- [] optional: when using DataLoader one should be able to decide which datasets (only mugs, mugs and bottles, only bottles) to use
+- [ ] optional: when using DataLoader one should be able to decide which datasets (only mugs, mugs and bottles, only bottles) to use
 
 ## Requirements
 
