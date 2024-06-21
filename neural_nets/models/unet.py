@@ -2,19 +2,22 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from neural_nets.trainer import THparams
+
 
 # Function to count the number of parameters
-def count_parameters(model):
+def count_parameters(model, verbose=False):
     total_params = 0
     for name, param in model.named_parameters():
         if param.requires_grad:
-            print(f"Layer: {name} | Size: {param.size()} | Parameters: {param.numel()}")
+            if verbose:
+                print(f"Layer: {name} | Size: {param.size()} | Parameters: {param.numel()}")
             total_params += param.numel()
     print(f"Total trainable parameters: {total_params}")
 
 
 class UNet1(nn.Module):
-    def __init__(self):
+    def __init__(self, t_h : THparams):
         super(UNet1, self).__init__()
         self.enc1 = self.contracting_block(1, 64)
         self.enc2 = self.contracting_block(64, 128)
