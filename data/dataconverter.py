@@ -35,14 +35,17 @@ def mesh_file_to_scene(mesh_file):
     return scene
 
 
-def files_in_dir(dir, name_end):
+def files_in_dir(dir, name_end, relative=False):
     # searches directory and all subdirectorys for files ending with name_end
     # returns paths to all these files
     file_paths = []
     for root, dirs, files in os.walk(dir):
         for file in files:
             if file.endswith(name_end):
-                file_paths.append(os.path.join(root, file))
+                path = root
+                if relative:
+                    path = os.path.relpath(root, dir)
+                file_paths.append(os.path.join(path, file))
 
     return file_paths
 
@@ -279,10 +282,10 @@ class DataConverter:
         '''Can be called separately to regenerate annotations CSV, if e.g. the test split ratio changes or new ShapeNet object classes are converted.'''
 
         if verbose:
-            print(
-                f'Generating annotation CSV files for training and testing with a split ratio of {1 - test_split}:{test_split}.')
+            print(f'Generating annotation CSV files for training and testing with a split ratio of {1 - test_split}:{test_split}.')
+        
+        imgs = files_in_dir(self.output_path, 'tactile.npy', relative=True)
 
-        imgs = files_in_dir(self.output_path, 'tactile.npy')
         labels = []
 
         for path in imgs:

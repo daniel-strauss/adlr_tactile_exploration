@@ -113,8 +113,8 @@ class ToTensor(object):
     def __call__(self, sample):
         img, label = sample['image'], sample['label']
 
-        return {'image': torch.from_numpy(img),
-                'label': torch.from_numpy(label)}
+        return {'image': torch.from_numpy(img.copy()),
+                'label': torch.from_numpy(label.copy())}
     
 
 class RandomFlip(object):
