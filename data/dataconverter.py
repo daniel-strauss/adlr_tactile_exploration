@@ -201,9 +201,8 @@ class DataConverter:
                 print("2D images for class" + cls.name + " already exist. Skipping conversion.")
                 continue
             self.generate_2d_dataset_aux(cls, regenerate=regenerate, show_results=show_results)
-        
-        self.generate_dataset_csvs(self.test_split)
 
+        self.generate_dataset_csvs(self.test_split)
 
     def generate_2d_dataset_aux(self, cls: ModelClass, regenerate=True, show_results=False):
 
@@ -221,8 +220,6 @@ class DataConverter:
                 for i in range(self.rand_rotations):
                     theta = np.random.random() * 2 * np.pi
                     self.render_mesh_file(mesh_file, cls, theta, show_results, str(i))
-            
-
 
     def render_mesh_file(self, mesh_file, cls, theta, show_results, id=''):
         # Render mesh to 2D image
@@ -275,23 +272,23 @@ class DataConverter:
         np_save(outline_path, outline, self.save_float)
 
         generate_tactile_images(outline, tactile_path, self.res,
-                                        amount=self.tact_number, order=self.tact_order, min_order=self.min_order,
-                                        save_float=self.save_float)
+                                amount=self.tact_number, order=self.tact_order, min_order=self.min_order,
+                                save_float=self.save_float)
 
-
-    def generate_dataset_csvs(self, test_split, verbose = True):
+    def generate_dataset_csvs(self, test_split, verbose=True):
         '''Can be called separately to regenerate annotations CSV, if e.g. the test split ratio changes or new ShapeNet object classes are converted.'''
-        
+
         if verbose:
-            print(f'Generating annotation CSV files for training and testing with a split ratio of {1 - test_split}:{test_split}.')
-        
+            print(
+                f'Generating annotation CSV files for training and testing with a split ratio of {1 - test_split}:{test_split}.')
+
         imgs = files_in_dir(self.output_path, 'tactile.npy')
         labels = []
 
         for path in imgs:
             label = os.path.join(os.path.dirname(os.path.dirname(path)), 'image.npy')
             labels.append(label)
-        
+
         n = len(imgs)
         block_size = self.tact_number * (self.tact_order - self.min_order + 1)
 
@@ -300,15 +297,15 @@ class DataConverter:
             return
 
         both = list(zip(imgs, labels))
-        blocks = [both[i:i+block_size] for i in range(0, len(both), block_size)]
+        blocks = [both[i:i + block_size] for i in range(0, len(both), block_size)]
         random.shuffle(blocks)
         both[:] = [b for bs in blocks for b in bs]
         imgs, labels = zip(*both)
-        
+
         index = block_size * int((n * test_split) / block_size)
         train_csv = os.path.join(self.output_path, 'annotations.csv')
         test_csv = os.path.join(self.output_path, 'test.csv')
-        
+
         with open(test_csv, 'w') as f:
             writer = csv.writer(f)
             writer.writerows(zip(imgs[0:index], labels[0:index]))
@@ -316,12 +313,11 @@ class DataConverter:
 
         with open(train_csv, 'w') as f:
             writer = csv.writer(f)
-            writer.writerows(zip(imgs[index+1:], labels[index+1:]))
+            writer.writerows(zip(imgs[index + 1:], labels[index + 1:]))
         f.close()
 
         if verbose:
             print(f'Finished generating annotation CSV files for {n} different shapes.')
-   
 
     def display_random_3d_samples(self, num_samples=5):
         # todo: some samples from the dataset can not be displayed using this code
@@ -336,7 +332,6 @@ class DataConverter:
         for sample_file in sample_files:
             scene = mesh_file_to_scene(sample_file)
             pyrender.Viewer(scene, use_raymond_lighting=True, viewport_size=(800, 600))
-
 
     def display_random_2d_samples(self, num_samples=5):
         # todo: also plot sample points on top of image
@@ -356,7 +351,6 @@ class DataConverter:
             ax.imshow(img)
             ax.axis('off')
         plt.show()
-
 
     def display_random_data_pairs(self, num_samples=5):
 
@@ -411,3 +405,4 @@ if __name__ == "__main__":
     )
     # set regenerate to true, if you run this after changes in dataconverter have been made
     dataconverter.generate_2d_dataset(show_results=False, regenerate=True)
+    dataconverter.display_random_data_pairs(num_samples=5)

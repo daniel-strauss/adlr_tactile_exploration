@@ -2,6 +2,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+# Function to count the number of parameters
+def count_parameters(model):
+    total_params = 0
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(f"Layer: {name} | Size: {param.size()} | Parameters: {param.numel()}")
+            total_params += param.numel()
+    print(f"Total trainable parameters: {total_params}")
+
+
 class UNet1(nn.Module):
     def __init__(self):
         super(UNet1, self).__init__()
@@ -37,7 +48,7 @@ class UNet1(nn.Module):
         )
         return block
 
-    def forward(self, x):
+    def forward_old(self, x):
         enc1 = self.enc1(x)
         enc2 = self.enc2(enc1)
         enc3 = self.enc3(enc2)
@@ -51,6 +62,27 @@ class UNet1(nn.Module):
         # all outputs between 0 and 1
         final = torch.sigmoid(self.final_conv(dec0))
         return final
+
+
+    def forward(self, x):
+        enc1 = self.enc1(x)
+        enc2 = self.enc2(enc1)
+        enc3 = self.enc3(enc2)
+        enc4 = self.enc4(enc3)
+        enc5 = self.enc5(enc4)
+        dec4 = self.upconv5(enc5)
+        #dec4.add(enc4)
+        dec3 = self.upconv4(torch.add(dec4, enc4))
+        #dec3.add(enc3)
+        dec2 = self.upconv3(torch.add(dec3, enc3))
+        #dec2.add(enc2)
+        dec1 = self.upconv2(torch.add(dec2, enc2))
+        #dec1.add(enc1)
+        dec0 = self.upconv1(torch.add(dec1, enc1))
+        # all outputs between 0 and 1
+        final = torch.sigmoid(self.final_conv(dec0))
+        return final
+
 
 class UNetSmall(nn.Module):
     def __init__(self):
