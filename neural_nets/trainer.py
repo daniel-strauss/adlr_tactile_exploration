@@ -13,20 +13,36 @@ import time
 import warnings
 import builtins
 import datetime
+import tempfile
 from typing import Callable
-
 # import matplotlib.pyplot as plt
 import torch.cuda
 from torch import nn
 from torch.utils.data import Dataset, DataLoader, random_split
 import torchvision.utils as vutils
-
 from torch.utils.tensorboard import SummaryWriter
+
+from pathlib import Path
+from ray import train
+from ray.train import Checkpoint, get_checkpoint
+import ray.cloudpickle as pickle
 
 from data.model_classes import ModelClass
 from data.reconstruction_dataset import show_datatripple
 
 
+# Function to count the number of parameters
+def count_parameters(model, verbose=False):
+    total_params = 0
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            if verbose:
+                print(f"Layer: {name} | Size: {param.size()} | Parameters: {param.numel()}")
+            total_params += param.numel()
+    print(f"Total trainable parameters: {total_params}")
+
+
+# todo think about putting NonTHparams and Hparams into one class, when you are not tired anymore
 class NonTHparams():
     # class, that specifies the key, value type pairs for
     # the non-tunable hparams.
@@ -38,7 +54,7 @@ class NonTHparams():
     # proportion of dataset to be training data
     train_prop: float = 0.8
 
-    # logging,setting period to 0 prohibits logging
+    # logging,setting period to -1 logs every epoch end
     log_val_period: int = 100
     log_train_period: int = 100
     print_log: bool = True
@@ -50,8 +66,9 @@ class THparams():
     # the tunable hparams.
     # If a hparam appears here, that you think is non-tunable, you can move it
     # to NonTHparams
+    # todo add beta variable for adams and maybe wheight regulization?
 
-    # optimization hparams
+    # optimization hparams,
     lr: float = 1e-5
     optimizer: torch.optim.Optimizer
     loss_func: Callable
@@ -59,33 +76,39 @@ class THparams():
     # network hparams
     model: nn.Module
     weight_init: Callable
-    # todo: depth, of model
-
-    # data hparams
+    depth: int = 5
+    channels: int = 64
 
     def __init__(self, params: dict = None):
         if not params is None:
-            raise NotImplemented("implement dictionary to class translation")
+            self.override_from_dict(params)
+
+    def override_from_dict(self, params: dict):
+        for key, value in params.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
 
 class Trainer:
     # dictionary containing all non-tunable hyperparameter, e.g. all hyperparameters,
     # that shall not be searched in a hypothetical parameter search
     nt_h: NonTHparams
+    t_h: THparams
 
-    test_dataset: Dataset
+    train_dataset: Dataset
     val_dataset: Dataset
 
-    def __init__(self, nt_hparams: NonTHparams, dataset: Dataset):
+    def __init__(self, nt_hparams: NonTHparams, t_hparams:THparams, dataset: Dataset):
 
         # non tunable hyperparameters
         self.nt_h = nt_hparams
+        self.t_h = t_hparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.dataset = dataset
         self.init_datasets()
 
         if not torch.cuda.is_available():
-            warnings.warn("Cuda is not available, device used instead: ", self.device)
+            warnings.warn("Cuda is not available, device used instead: " + str(self.device))
 
         if self.nt_h.board_log:
             print("During training, progress will be logged to tensorboard. Go to project folder, activate appropritae "
@@ -100,29 +123,40 @@ class Trainer:
         self.val_dataset, self.train_dataset = random_split(self.dataset, [val_size, train_size])
 
     def train_from_dict(self, t_hparams_dict: dict):
-        t_hparams = THparams(t_hparams_dict)
-        self.train(t_hparams)
+        # overrides self.t_h from that dict and then trains
+        # todo: find nicer way to do this, restore t_h afterwards maybe?
+        self.t_h.override_from_dict(t_hparams_dict)
+        self.train()
 
-    def train(self, t_h: THparams):
+    def train(self):
         # t_h: class containing all tunable hparams, e.g. learnign rate and shit like that
         # all parameters that should be searched in a hypothetical parameter search are in
         # the class of t_h
 
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if not torch.cuda.is_available():
+            warnings.warn("Cuda is not available, device used instead: " + str(self.device))
+        else:
+            print("Hurray! GPU available.")
+
         # Initialize model, loss function, and optimizer
-        model = t_h.model(t_h).to(self.device)
-        criterion = t_h.loss_func
-        optimizer = t_h.optimizer(model.parameters(), lr=t_h.lr)
+        model = self.t_h.model(self.t_h).to(self.device)
+        if self.nt_h.print_log:
+            count_parameters(model)
+
+        criterion = self.t_h.loss_func
+        optimizer = self.t_h.optimizer(model.parameters(), lr=self.t_h.lr)
 
         # initialize model parameters
-        model.apply(t_h.weight_init)
+        model.apply(self.t_h.weight_init)
 
         # initialize dataloaders
         train_loader = DataLoader(self.train_dataset,
-                                  batch_size=t_h.batch_size,
+                                  batch_size=self.t_h.batch_size,
                                   shuffle=True,
                                   num_workers=0)
         val_loader = DataLoader(self.val_dataset,
-                                batch_size=t_h.batch_size,
+                                batch_size=self.t_h.batch_size,
                                 shuffle=True,
                                 num_workers=0)
 
@@ -131,6 +165,20 @@ class Trainer:
         if self.nt_h.board_log:
             # Set up TensorBoard
             writer = SummaryWriter(f'runs/U-Net_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+
+        ##############################################################
+        # Try to load ray - checkpoint if available
+        checkpoint = get_checkpoint()
+        if checkpoint:
+            with checkpoint.as_directory() as checkpoint_dir:
+                data_path = Path(checkpoint_dir) / "data.pkl"
+                with open(data_path, "rb") as fp:
+                    checkpoint_state = pickle.load(fp)
+                start_epoch = checkpoint_state["epoch"]
+                model.load_state_dict(checkpoint_state["net_state_dict"])
+                optimizer.load_state_dict(checkpoint_state["optimizer_state_dict"])
+        else:
+            start_epoch = 0
 
         #######################################################################
         ####################### TRAIN LOOP ####################################
@@ -164,10 +212,9 @@ class Trainer:
                 optimizer.step()
 
                 sum_train_loss += loss.item()
-                print("loss: ", loss.item())
-
                 # log training data every log_train_period batches
-                if (i + epoch * num_t_batches) % self.nt_h.log_train_period == self.nt_h.log_train_period - 1:
+                if ((i + epoch * num_t_batches) % self.nt_h.log_train_period == self.nt_h.log_train_period - 1
+                        or (self.nt_h.log_train_period == -1 and i == num_t_batches - 1)):
 
                     train_duration = time.time() - train_period_stime_train
                     log_starttime = time.time()
@@ -200,7 +247,8 @@ class Trainer:
                     sum_train_loss = 0.0
 
                 # Log val loss every log_val_period batches
-                if (i + epoch * num_t_batches) % self.nt_h.log_val_period == self.nt_h.log_val_period-1:
+                if ((i + epoch * num_t_batches) % self.nt_h.log_val_period == self.nt_h.log_val_period - 1
+                        or (self.nt_h.log_val_period == -1 and i == num_t_batches - 1)):
 
                     train_duration = time.time() - train_period_stime_val
 
@@ -256,5 +304,21 @@ class Trainer:
                             f'Val Log Time Proportion: {val_t_prop:.4f}')
                         print('#######################################################################################')
 
-                    train_period_stime_val = time.time()
+                    # save model and loss for ray
+                    checkpoint_data = {
+                        "epoch": epoch,
+                        "net_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                    }
+                    with tempfile.TemporaryDirectory() as checkpoint_dir:
+                        data_path = Path(checkpoint_dir) / "data.pkl"
+                        with open(data_path, "wb") as fp:
+                            pickle.dump(checkpoint_data, fp)
 
+                        checkpoint = Checkpoint.from_directory(checkpoint_dir)
+                        train.report(
+                            {"loss": val_loss},
+                            checkpoint=checkpoint,
+                        )
+
+                    train_period_stime_val = time.time()

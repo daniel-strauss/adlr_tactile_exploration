@@ -1,0 +1,29 @@
+Failure # 1 (occurred at 2024-06-22_03-18-21)
+[36mray::ImplicitFunc.train()[39m (pid=87407, ip=192.168.79.41, actor_id=877566af24068ad6a2a7a56a01000000, repr=train_from_dict)
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/ray/tune/trainable/trainable.py", line 331, in train
+    raise skipped from exception_cause(skipped)
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/ray/air/_internal/util.py", line 98, in run
+    self._ret = self._target(*self._args, **self._kwargs)
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/ray/tune/trainable/function_trainable.py", line 45, in <lambda>
+    training_func=lambda: self._trainable_func(self.config),
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/ray/tune/trainable/function_trainable.py", line 248, in _trainable_func
+    output = fn()
+  File "/home/daniel/Documents/TUM/ADLR/tum-adlr-02/neural_nets/trainer.py", line 129, in train_from_dict
+    self.train()
+  File "/home/daniel/Documents/TUM/ADLR/tum-adlr-02/neural_nets/trainer.py", line 192, in train
+    for i, batch in enumerate(train_loader):
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 631, in __next__
+    data = self._next_data()
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 675, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/torch/utils/data/_utils/fetch.py", line 49, in fetch
+    data = self.dataset.__getitems__(possibly_batched_index)
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/torch/utils/data/dataset.py", line 419, in __getitems__
+    return [self.dataset[self.indices[idx]] for idx in indices]
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/torch/utils/data/dataset.py", line 419, in <listcomp>
+    return [self.dataset[self.indices[idx]] for idx in indices]
+  File "/home/daniel/Documents/TUM/ADLR/tum-adlr-02/data/reconstruction_dataset.py", line 91, in __getitem__
+    print("This path should be the root directory of the project: ", os.getcwd())
+  File "/home/daniel/anaconda3/envs/adlr/lib/python3.9/site-packages/numpy/lib/npyio.py", line 427, in load
+    fid = stack.enter_context(open(os_fspath(file), "rb"))
+FileNotFoundError: [Errno 2] No such file or directory: './datasets/2D_shapes/mug/586e67c53f181dc22adf8abaa25e0215/tactile_points/o10n0tactile.npy'
