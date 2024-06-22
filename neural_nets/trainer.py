@@ -191,7 +191,7 @@ class Trainer:
 
         data_loading_time = 0
 
-        for epoch in range(self.nt_h.num_epochs):
+        for epoch in range(start_epoch, self.nt_h.num_epochs):
             model.train()  # put model into training mode
             sum_train_loss = 0.0
 
