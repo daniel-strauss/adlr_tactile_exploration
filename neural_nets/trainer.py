@@ -54,8 +54,10 @@ class NonTHparams():
     # proportion of dataset to be training data
     train_prop: float = 0.8
 
-    # logging,setting period to -1 logs every epoch end
-    log_val_period: int = 100
+    #logging
+    # amount of val calculations per epoch
+    log_val_freq: int = 1
+    # setting period to -1 logs every epoch end
     log_train_period: int = 100
     print_log: bool = True
     board_log: bool = True  # log to tensorboard
@@ -222,12 +224,12 @@ class Trainer:
                     # log training loss
                     if self.nt_h.board_log:
                         writer.add_scalar('Loss/train', sum_train_loss / self.nt_h.log_train_period,
-                                          epoch * len(train_loader) + i)
+                                          epoch * len(train_loader) + i*self.nt_h.batch_size)
 
                         # Log one reconstructed training image sample
                         img_grid = vutils.make_grid([inputs[-1], labels[-1], outputs[-1]])
                         writer.add_image('reconstructed_training_images', img_grid,
-                                         global_step=epoch * len(train_loader) + i)
+                                         global_step=epoch * len(train_loader) + i*self.nt_h.batch_size)
 
                     log_duration = time.time() - log_starttime
                     log_prop = log_duration / train_duration
@@ -246,9 +248,8 @@ class Trainer:
 
                     sum_train_loss = 0.0
 
-                # Log val loss every log_val_period batches
-                if ((i + epoch * num_t_batches) % self.nt_h.log_val_period == self.nt_h.log_val_period - 1
-                        or (self.nt_h.log_val_period == -1 and i == num_t_batches - 1)):
+                # Log val loss every log_val_freq batches
+                if (i+1)%int(num_t_batches/self.nt_h.log_val_freq) == 0:
 
                     train_duration = time.time() - train_period_stime_val
 
@@ -268,7 +269,7 @@ class Trainer:
 
                     # log validation loss
                     if self.nt_h.board_log:
-                        writer.add_scalar('Loss/val', val_loss, epoch * len(train_loader) + i)
+                        writer.add_scalar('Loss/val', val_loss, epoch * len(train_loader) + i*self.nt_h.batch_size)
 
                         # Log one reconstructed validation image sample
                         # todo: log mutliple images instead, explicitly log images that perform very bad and ones that
@@ -278,9 +279,10 @@ class Trainer:
                         labels = batch['label'].to(self.device)
                         outputs = model(inputs)
 
-                        img_grid = vutils.make_grid([inputs[-1], labels[-1], outputs[-1]])
-                        writer.add_image('reconstructed_validation_images', img_grid,
-                                         global_step=epoch * len(train_loader) + i)
+                        for i in range(1,6):
+                            img_grid = vutils.make_grid([inputs[-i], labels[-i], outputs[-i]])
+                            writer.add_image('reconstructed_validation_images', img_grid,
+                                         global_step=epoch * len(train_loader) + i*self.nt_h.batch_size)
 
                     # ploting images like this (they are also plotted on tensorboard, but here they are more
                     # uebersichtlich somehow)

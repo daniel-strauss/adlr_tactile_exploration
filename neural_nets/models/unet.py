@@ -9,7 +9,7 @@ from neural_nets.trainer import THparams
 
 class UNet2(nn.Module):
     # UNet with adaptable depth
-    def __init__(self, t_h:THparams):
+    def __init__(self, t_h:THparams=None):
         super().__init__()
         self.depth = t_h.depth
         self.channels = t_h.channels
@@ -77,8 +77,8 @@ class UNet2(nn.Module):
 
 
 class UNet1(nn.Module):
-    def __init__(self, t_h : THparams):
-        super(UNet1, self).__init__()
+    def __init__(self, t_h : THparams = None):
+        super().__init__()
         self.enc1 = self.contracting_block(1, 64)
         self.enc2 = self.contracting_block(64, 128)
         self.enc3 = self.contracting_block(128, 256)
@@ -148,7 +148,7 @@ class UNet1(nn.Module):
 
 
 class UNetSmall(nn.Module):
-    def __init__(self):
+    def __init__(self, t_h : THparams = None):
         super(UNetSmall, self).__init__()
         self.enc1 = self.contracting_block(1, 64)
         self.enc2 = self.contracting_block(64, 128)
