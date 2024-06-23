@@ -279,10 +279,9 @@ class Trainer:
                         labels = batch['label'].to(self.device)
                         outputs = model(inputs)
 
-                        for i in range(1,6):
-                            img_grid = vutils.make_grid([inputs[-i], labels[-i], outputs[-i]])
-                            writer.add_image('reconstructed_validation_images', img_grid,
-                                         global_step=epoch * len(train_loader) + i*self.t_h.batch_size)
+                        img_grid = vutils.make_grid([inputs[-1], labels[-1], outputs[-1]])
+                        writer.add_image('reconstructed_validation_images', img_grid,
+                                     global_step=epoch * len(train_loader) + i*self.t_h.batch_size)
 
                     # ploting images like this (they are also plotted on tensorboard, but here they are more
                     # uebersichtlich somehow)
