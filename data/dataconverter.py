@@ -145,6 +145,7 @@ class DataConverter:
                  tact_number=10,
                  test_split=0.1,
                  rand_rotations=0,
+                 max_samples_per_shape = -1, #todo
                  save_float=True  # if false, dataloader will save boolean arraysw
                  ):
 
@@ -163,6 +164,13 @@ class DataConverter:
         self.test_split = test_split
 
         self.rand_rotations = rand_rotations
+
+        # to prevent datasets, so large they don't fit on the drive
+        # one can cap the amount of generated samples per shape.
+        # If cap isnt wished set to -1
+        self.max_samples_per_shape = max_samples_per_shape
+        if self.max_samples_per_shape != -1:
+            raise NotImplementedError("max_samples_per_shape feature not yet implemented.")
 
         self.save_float = save_float
 
