@@ -224,12 +224,12 @@ class Trainer:
                     # log training loss
                     if self.nt_h.board_log:
                         writer.add_scalar('Loss/train', sum_train_loss / self.nt_h.log_train_period,
-                                          epoch * len(train_loader) + i*self.nt_h.batch_size)
+                                          epoch * len(train_loader) + i*self.t_h.batch_size)
 
                         # Log one reconstructed training image sample
                         img_grid = vutils.make_grid([inputs[-1], labels[-1], outputs[-1]])
                         writer.add_image('reconstructed_training_images', img_grid,
-                                         global_step=epoch * len(train_loader) + i*self.nt_h.batch_size)
+                                         global_step=epoch * len(train_loader) + i*self.t_h.batch_size)
 
                     log_duration = time.time() - log_starttime
                     log_prop = log_duration / train_duration
@@ -269,7 +269,7 @@ class Trainer:
 
                     # log validation loss
                     if self.nt_h.board_log:
-                        writer.add_scalar('Loss/val', val_loss, epoch * len(train_loader) + i*self.nt_h.batch_size)
+                        writer.add_scalar('Loss/val', val_loss, epoch * len(train_loader) + i*self.t_h.batch_size)
 
                         # Log one reconstructed validation image sample
                         # todo: log mutliple images instead, explicitly log images that perform very bad and ones that
@@ -282,7 +282,7 @@ class Trainer:
                         for i in range(1,6):
                             img_grid = vutils.make_grid([inputs[-i], labels[-i], outputs[-i]])
                             writer.add_image('reconstructed_validation_images', img_grid,
-                                         global_step=epoch * len(train_loader) + i*self.nt_h.batch_size)
+                                         global_step=epoch * len(train_loader) + i*self.t_h.batch_size)
 
                     # ploting images like this (they are also plotted on tensorboard, but here they are more
                     # uebersichtlich somehow)
