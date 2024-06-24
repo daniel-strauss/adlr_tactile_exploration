@@ -27,6 +27,7 @@
   - scikit-image
   - jupyter
   - notebook
+  - tqdm
 
 ## Documentation
 
