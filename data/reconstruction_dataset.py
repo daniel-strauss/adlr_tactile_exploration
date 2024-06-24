@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
+from tqdm import tqdm
+import psutil
 
 # from reconstruction_dataset import *
 
@@ -122,13 +124,17 @@ class MemoryReconstructionDataset(Dataset):
 
         str = ''
         label = None
-        for i in range(len(img_paths)):
+        for i in tqdm(range(len(img_paths)), 'Data to memory'):
             if(str != label_paths[i]):
                 str = label_paths[i]
                 label_path = os.path.join(root_dir, str)
                 label = np.load(label_path)
             img_path = os.path.join(root_dir, img_paths[i])
 
+            if i % 50000 == 0:
+                memory_usage = psutil.virtual_memory()
+                print(f"Memory Usage: {memory_usage.percent}%")
+                
             img = np.load(img_path)
             imgs.append(img)
             labels.append(label)
