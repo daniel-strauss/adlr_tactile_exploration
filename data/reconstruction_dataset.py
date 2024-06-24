@@ -97,6 +97,55 @@ class ReconstructionDataset(Dataset):
 
         return sample
 
+class MemoryReconstructionDataset(Dataset):
+    """Reconstruction dataset."""
+
+    def __init__(self, csv_file, root_dir, transform=None):
+        """
+        Arguments:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.transform = transform
+        self.images, self.labels = self.create_memory_dataset(csv_file, root_dir)
+
+    def create_memory_dataset(self, csv_file, root_dir):
+        
+        df = pd.read_csv(csv_file)
+        img_paths = df.iloc[:, 0].to_list()
+        label_paths = df.iloc[:, 1].to_list()
+
+        imgs = []
+        labels = []
+
+        str = ''
+        label = None
+        for i in range(len(img_paths)):
+            if(str != label_paths[i]):
+                str = label_paths[i]
+                label_path = os.path.join(root_dir, str)
+                label = np.load(label_path)
+            img_path = os.path.join(root_dir, img_paths[i])
+
+            img = np.load(img_path)
+            imgs.append(img)
+            labels.append(label)
+        
+        return imgs, labels
+            
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, idx):
+
+        sample = {'image': self.images[idx], 'label': self.labels[idx]}
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
+
 
 """
 Transformations:
@@ -112,8 +161,8 @@ class ToTensor(object):
     def __call__(self, sample):
         img, label = sample['image'], sample['label']
 
-        return {'image': torch.from_numpy(img.copy()),
-                'label': torch.from_numpy(label.copy())}
+        return {'image': torch.from_numpy(img),
+                'label': torch.from_numpy(label)}
     
 
 class RandomFlip(object):
