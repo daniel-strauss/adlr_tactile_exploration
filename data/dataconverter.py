@@ -7,6 +7,7 @@ import pyrender
 import trimesh
 import random
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 ########################################
 from data.model_classes import *
 
@@ -182,7 +183,7 @@ class DataConverter:
         for cls in self.classes:
             cls_path = os.path.join(self.input_path, cls.name)
             if redownload or not os.path.exists(cls_path):
-                print(f"Downloading bottle dataset from {cls.get_url()}...")
+                print(f"Downloading {cls.name} dataset from {cls.get_url()}...")
                 response = requests.get(cls.get_url(), stream=True)
                 zip_path = os.path.join(self.input_path, 'bottle.zip')
                 with open(zip_path, 'wb') as file:
@@ -211,6 +212,7 @@ class DataConverter:
                     and os.path.exists(os.path.join(self.output_path, cls.name))):
                 print("2D images for class" + cls.name + " already exist. Skipping conversion.")
                 continue
+
             self.generate_2d_dataset_aux(cls, regenerate=regenerate, show_results=show_results)
 
         self.generate_dataset_csvs(self.test_split)
@@ -222,8 +224,7 @@ class DataConverter:
             os.path.join(self.input_path, cls.name),
             '.obj')
 
-        print("Converting ", len(mesh_files), " files ...")
-        for mesh_file in mesh_files:
+        for mesh_file in tqdm(mesh_files, f'Class {cls.name}'):
             if self.rand_rotations < 1:
                 theta = 0
                 self.render_mesh_file(mesh_file, cls, theta, show_results)

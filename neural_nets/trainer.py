@@ -3,7 +3,7 @@ Class that provides:
     - instancing neural network, optimizers, dataloaders,
         everything else from hyperparameters in dict config
     - training function
-    - progress logging, using tensoarboard, automatically opens tap for logging
+    - progress logging, using tensorboard, automatically opens tap for logging
     - usage of ray, ray is a library that searches for good hparams
 
     The purpose of this class is to avoid multiple
@@ -113,7 +113,7 @@ class Trainer:
             warnings.warn("Cuda is not available, device used instead: " + str(self.device))
 
         if self.nt_h.board_log:
-            print("During training, progress will be logged to tensorboard. Go to project folder, activate appropritae "
+            print("During training, progress will be logged to tensorboard. Go to project folder, activate appropriate"
                   "conda environment and run 'tensorboard --logdir runs/' to see the logs.")
 
     def init_datasets(self):

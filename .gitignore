@@ -5,3 +5,4 @@ runs/
 .ipynb_checkpoints
 Reconstruction_Jan.ipynb
 train.py
+param.py
