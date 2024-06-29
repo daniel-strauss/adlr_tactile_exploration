@@ -32,7 +32,7 @@ class Hparams():
     # class, that specifies the key, value type pairs for Hparams
 
     # train hparams
-    batch_size: int = 16
+    batch_size: int = 256
     epochs: int = 10
     train_prop: float = 0.8
     num_workers: int = 8
@@ -185,7 +185,5 @@ class Trainer:
                     {"loss": val_loss / val_steps, "accuracy": correct / total},
                     checkpoint=checkpoint,
                 )
-            
-            tune.report(loss=(val_loss / val_steps), accuracy=(correct / total))
 
         print("Finished Training")

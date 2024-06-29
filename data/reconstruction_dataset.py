@@ -89,8 +89,8 @@ class ReconstructionDataset(Dataset):
         label_name = os.path.join(self.root_dir,
                                   self.annotation_frame.iloc[idx, 1])
 
-        img = np.load(img_name)
-        label = np.load(label_name)
+        img = np.load(img_name).astype('f')
+        label = np.load(label_name).astype('f')
         sample = {'image': img, 'label': label}
 
         if self.transform:

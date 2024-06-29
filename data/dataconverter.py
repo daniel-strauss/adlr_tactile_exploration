@@ -147,7 +147,7 @@ class DataConverter:
                  test_split=0.1,
                  rand_rotations=0,
                  max_samples_per_shape = -1, #todo
-                 save_float=True  # if false, dataloader will save boolean arraysw
+                 save_float=False  # if false, dataloader will save boolean arraysw
                  ):
 
         self.res = res
