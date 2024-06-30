@@ -3,14 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from neural_nets.trainer import THparams
-from neural_nets.utility_functions import Hparams
 
 class UNet3(nn.Module):
     # UNet with adaptable depth 
-    def __init__(self, h:Hparams=None):
+    def __init__(self, config: dict):
         super().__init__()
-        self.depth = h.depth
-        self.channels = h.channels
+        self.depth = config['depth']
+        self.channels = config['channels']
 
         # Create encoder layers
         self.encoder = nn.ModuleList()
