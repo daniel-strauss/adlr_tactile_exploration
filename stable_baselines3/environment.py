@@ -2,16 +2,16 @@ import os
 import gym
 from gym import spaces
 import numpy as np
+import skimage as ski
 
 def next_shape_path():
     return './datasets/2D_shapes/bottle/1a7ba1f4c892e2da30711cdbdbc739240'
 
-def render_observation(grasping_points, reconstruction):
-  
 
 class ShapeEnv(gym.Env):
     """Custom Environment that follows gym interface"""
     metadata = {'render.modes': ['human']}
+
     def __init__(self):
         super(ShapeEnv, self).__init__()
         # Define action and observation space
@@ -23,8 +23,20 @@ class ShapeEnv(gym.Env):
 
     def step(self, action):
 
-        alpha = action[0] * 2 * np.pi
-        beta = action[0] * np.pi
+        alpha = action[0] * np.pi
+        beta = action[1] * np.pi
+        r = 128
+
+        x1 = round(r * np.cos(alpha)) + r
+        y1 = round(r * np.sin(alpha)) + r
+        x2 = round(r * np.cos(beta)) + r
+        y2 = round(r * np.sin(beta)) + r
+
+        if x1 == x2 and y1 == y2:
+            ...
+            #TODO
+
+        rr, cc = ski.draw.line(x1, y1, x2, y2)
 
         """
         TODO:
@@ -36,8 +48,8 @@ class ShapeEnv(gym.Env):
         5. Update observations
 
         """
-
-        return observation, reward, done, info
+        return self.observation, self.reward, self.done, self.info
+    
     def reset(self):
         self.done = False
         path = next_shape_path()
@@ -51,6 +63,14 @@ class ShapeEnv(gym.Env):
 
         return self.observation  # reward, done, info can't be included
     def render(self, mode='human'):
-        ...
+        '''
+        TODO:
+
+        - Rendering of grasping points, rays, shape prediciton, actual shape
+        - Color coding
+
+        '''
     def close (self):
-        ...
+        '''
+        Probably not much to do here, since we dont need to close down any processes or similar
+        '''
