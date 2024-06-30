@@ -13,22 +13,26 @@ from pathlib import Path
 from neural_nets.models.unet import UNet3
 
 data_dir = './datasets/2D_shapes'
-cpus = 2
+cpus = 10
 gpus = 1
 max_epochs = 10
-num_samples = 10
+num_samples = 200
+
+dataset, _ = load_data()
+image_resolution = dataset[0]['image'].shape[1]
+max_unet_depth = int(np.log2(image_resolution))
 
 # set of hyperparameters that will be searched in the given ranges, merged with the standard_config 
 config = {
     "lr": tune.loguniform(1e-7, 1e-2),
+    "depth": tune.choice([i for i in range(3,max_unet_depth+1-2)]),
+    "channels": tune.choice([2 ** i for i in range(4,9)]),
+    "batch_size": tune.choice([2 ** i for i in range(2,5)]),
     "epochs": max_epochs,
     "num_workers": cpus,
-    "batch_size": 16,
-    "smoke": True
+    "smoke": False
 }
 config = standard_config | config
-
-dataset, _ = load_data()
 
 os.environ["RAY_CHDIR_TO_TRIAL_DIR"] = "0"
 
@@ -61,4 +65,6 @@ tuner = tune.Tuner(
 results = tuner.fit()
 
 best_trial = results.get_best_result()
-print(f"Best trial config: {best_trial.config}")
+best_trial.metrics
+print(f"Best trail with a validation loss of {best_trial.metrics['loss']}")
+print(f"Config: {best_trial.config}")

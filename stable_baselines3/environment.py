@@ -27,16 +27,16 @@ class ShapeEnv(gym.Env):
         beta = action[1] * np.pi
         r = 128
 
-        x1 = round(r * np.cos(alpha)) + r
-        y1 = round(r * np.sin(alpha)) + r
-        x2 = round(r * np.cos(beta)) + r
-        y2 = round(r * np.sin(beta)) + r
+        r1 = round((r * np.cos(alpha) + r) * (255 / 256)) 
+        c1 = round((r * np.sin(alpha) + r) * (255 / 256)) 
+        r2 = round((r * np.cos(beta) + r) * (255 / 256)) 
+        c2 = round((r * np.sin(beta) + r) * (255 / 256)) 
 
-        if x1 == x2 and y1 == y2:
+        if r1 == r2 and c1 == c2:
             ...
             #TODO
 
-        rr, cc = ski.draw.line(x1, y1, x2, y2)
+        rr, cc = ski.draw.line(r1, c1, r2, c2)
 
         """
         TODO:
