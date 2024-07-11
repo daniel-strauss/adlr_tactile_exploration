@@ -75,17 +75,27 @@ class UNet3(nn.Module):
 
 class UNet2(nn.Module):
     # UNet with adaptable depth
+
+
     def __init__(self, t_h:THparams=None):
         super().__init__()
         self.depth = t_h.depth
         self.channels = t_h.channels
+        if t_h.first_kernel_size %2 ==0:
+            raise ValueError("First kernel size must be uneven number")
+        self.first_kernel_size = t_h.first_kernel_size
 
         # Create encoder layers
         self.encoder = nn.ModuleList()
         in_channels = 1
         for i in range(self.depth):
             out_channels = self.channels * (2 ** i)
-            self.encoder.append(self.contracting_block(in_channels, out_channels))
+            # in first layer set custom kernel size
+            if i == 0:
+                self.encoder.append(self.contracting_block(in_channels, out_channels,
+                                                           first_kernel_size=self.first_kernel_size))
+            else:
+                self.encoder.append(self.contracting_block(in_channels, out_channels))
             in_channels = out_channels
 
         # Create decoder layers
@@ -99,9 +109,10 @@ class UNet2(nn.Module):
         self.final_block = self.expansive_block(self.channels, self.channels)
         self.final_conv = nn.Conv2d(self.channels, 1, kernel_size=1)
 
-    def contracting_block(self, in_channels, out_channels):
+    def contracting_block(self, in_channels, out_channels, first_kernel_size=3):
+
         block = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=first_kernel_size, padding=int((first_kernel_size-1)/2)),
             nn.ReLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),

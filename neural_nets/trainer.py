@@ -80,6 +80,7 @@ class THparams():
     weight_init: Callable
     depth: int = 5
     channels: int = 64
+    first_kernel_size:int = 3
 
     def __init__(self, params: dict = None):
         if not params is None:
