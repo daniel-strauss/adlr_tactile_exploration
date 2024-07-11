@@ -7,10 +7,11 @@ import skimage as ski
 def next_shape_path():
     return './datasets/2D_shapes/bottle/1a7ba1f4c892e2da30711cdbdbc739240'
 
-
 class ShapeEnv(gym.Env):
     """Custom Environment that follows gym interface"""
     metadata = {'render.modes': ['human']}
+
+    res = 256 #todo, automate res extraction from data?
 
     def __init__(self):
         super(ShapeEnv, self).__init__()
@@ -74,3 +75,16 @@ class ShapeEnv(gym.Env):
         '''
         Probably not much to do here, since we dont need to close down any processes or similar
         '''
+
+    ############################# Helpfull Functions ############################
+
+    # converts a list of points to image array, where each point has value one
+    def p_list_to_img_array(self, p_list):
+        a = np.zeros((self.res, self.res))
+        a[p_list] = 1
+        return a
+
+    # converts a n,m array to a n,m,1 array
+    def add_color_channel(self, a):
+        pass
+        #return [a]
