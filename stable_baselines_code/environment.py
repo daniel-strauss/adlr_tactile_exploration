@@ -4,9 +4,19 @@ from gym import spaces
 import numpy as np
 import skimage as ski
 from matplotlib import pyplot as plt
+from scipy.signal import convolve2d
 from torch import from_numpy
 import torch
 
+'''
+TODOs:
+  - load all files, maybe use our dataset class
+  - store and load reconstruction networks
+  - implement the stable baseline policies and all of that shit
+  - optional: instead of numpy use torch for better performance 
+  - case where anti aliasing is needed, are hard to construct and thus I didnt test them yet
+  - bug: in very rare cases it identifies point on circle as tactile point
+'''
 
 def next_shape_path():
     #return './datasets/2D_shapes/bottle/1a7ba1f4c892e2da30711cdbdbc739240'
@@ -46,6 +56,7 @@ class ShapeEnv(gym.Env):
         plt.ion()
         self.fig, (self.ax_1, self.ax_2) = plt.subplots(1, 2, figsize=(12, 6))
         self.render_initialized = False
+        plt.show()
 
         ######### on run variables #################
         self.done = None
@@ -96,6 +107,14 @@ class ShapeEnv(gym.Env):
             # no intersection found (we assume outline does not intersect cirlce), try with antialiasing
             if inters_i == 0:
                 line_img = self.p_list_to_img_array(np.array((rr, cc)).transpose())
+                gauss_kernel = np.array([
+                    [0.5, 0.5, 0.5],
+                    [0.5, 1.0, 0.5],
+                    [0.5, 0.5, 0.5]
+                ])
+                # apply antialiasing wth gauss filter
+                line_img = (convolve2d(line_img.squeeze(), gauss_kernel.squeeze(), mode='same')
+                            .reshape((1, self.res, self.res)))
                 intersections = np.argwhere(line_img * self.outline_img > 0)
 
                 # missed
@@ -112,7 +131,7 @@ class ShapeEnv(gym.Env):
                 self.grasp_point_img[0, r_g, c_g] = 1
 
         # 3. Infer reconstruction with new grasp point.
-        loss, reconstruction = self.infer_reconstruction()
+        loss, self.reconstruction_img = self.infer_reconstruction()
         self.losses.append(loss)
 
         # 4. Calculate reward (rel/abs decrease in loss)
@@ -167,9 +186,8 @@ class ShapeEnv(gym.Env):
 
         self.ax_2.clear()
         self.ax_2.imshow(self.convert_for_imshow(self.add_zero_channel(self.observation)))
-
         self.fig.canvas.draw()
-        plt.pause(1)
+        plt.pause(.1)
 
     def close(self):
         '''
