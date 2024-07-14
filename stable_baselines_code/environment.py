@@ -105,7 +105,8 @@ class ShapeEnv(gym.Env):
             inters_i = np.argmax(self.outline_img[0, rr, cc])
 
             # no intersection found (we assume outline does not intersect cirlce), try with antialiasing
-            if inters_i == 0:
+            if inters_i == 0 or inters_i == len(rr)-1:
+
                 line_img = self.p_list_to_img_array(np.array((rr, cc)).transpose())
                 gauss_kernel = np.array([
                     [0.5, 0.5, 0.5],
