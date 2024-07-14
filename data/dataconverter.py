@@ -142,11 +142,10 @@ class DataConverter:
                  res=256,
                  classes=[Bottle(), Mug()],
                  min_order=1,
-                 tact_order=10,
+                 tact_order=1,
                  tact_number=10,
-                 test_split=0.1,
-                 rand_rotations=0,
-                 max_samples_per_shape = -1, #todo
+                 split=(0.8, 0.1, 0.1),
+                 rand_rotations=5,
                  save_float=False  # if false, dataloader will save boolean arraysw
                  ):
 
@@ -161,18 +160,10 @@ class DataConverter:
         # Number of sampled tactile images per order of tactile points
         self.tact_number = tact_number
 
-        # Size of test data split
-        self.test_split = test_split
+        # Train/eval/test split
+        self.split = split
 
         self.rand_rotations = rand_rotations
-
-        # to prevent datasets, so large they don't fit on the drive
-        # one can cap the amount of generated samples per shape.
-        # If cap isnt wished set to -1
-        self.max_samples_per_shape = max_samples_per_shape
-        if self.max_samples_per_shape != -1:
-            raise NotImplementedError("max_samples_per_shape feature not yet implemented.")
-
         self.save_float = save_float
 
     def download_dataset(self, redownload=True):
@@ -215,7 +206,7 @@ class DataConverter:
 
             self.generate_2d_dataset_aux(cls, regenerate=regenerate, show_results=show_results)
 
-        self.generate_dataset_csvs(self.test_split)
+        self.generate_dataset_csvs(self.split)
 
     def generate_2d_dataset_aux(self, cls: ModelClass, regenerate=True, show_results=False):
 
@@ -287,11 +278,14 @@ class DataConverter:
                                 amount=self.tact_number, order=self.tact_order, min_order=self.min_order,
                                 save_float=self.save_float)
 
-    def generate_dataset_csvs(self, test_split, verbose=True):
+    def generate_dataset_csvs(self, split=(0.8, 0.1, 0.1), verbose=True):
         '''Can be called separately to regenerate annotations CSV, if e.g. the test split ratio changes or new ShapeNet object classes are converted.'''
 
+        test = [x for x in split]
+        assert sum(test) == 1.0, 'Splits should be a tuple and add up to 1!'
+
         if verbose:
-            print(f'Generating annotation CSV files for training and testing with a split ratio of {1 - test_split}:{test_split}.')
+            print(f'Generating annotation CSV files for training and testing with a split train/eval/test ratio of {split[0]}:{split[1]}:{split[2]}')
         
         imgs = files_in_dir(self.output_path, 'tactile.npy', relative=True)
 
@@ -302,7 +296,7 @@ class DataConverter:
             labels.append(label)
 
         n = len(imgs)
-        block_size = self.tact_number * (self.tact_order - self.min_order + 1)
+        block_size = self.tact_number * max(self.rand_rotations, 1) * (self.tact_order - self.min_order + 1)
 
         if verbose and n % block_size:
             print('Error: Not all tactile samples were generated correctly!')
@@ -314,18 +308,26 @@ class DataConverter:
         both[:] = [b for bs in blocks for b in bs]
         imgs, labels = zip(*both)
 
-        index = block_size * int((n * test_split) / block_size)
-        train_csv = os.path.join(self.output_path, 'annotations.csv')
+        index1 = block_size * int((n * split[-1]) / block_size)
+        index2 = block_size * int((n * (split[-1] + split[-2])) / block_size)
+
+        train_csv = os.path.join(self.output_path, 'train.csv')
+        eval_csv = os.path.join(self.output_path, 'eval.csv')
         test_csv = os.path.join(self.output_path, 'test.csv')
 
         with open(test_csv, 'w') as f:
             writer = csv.writer(f)
-            writer.writerows(zip(imgs[0:index], labels[0:index]))
+            writer.writerows(zip(imgs[0:index1], labels[0:index1]))
+        f.close()
+
+        with open(eval_csv, 'w') as f:
+            writer = csv.writer(f)
+            writer.writerows(zip(imgs[index1+1:index2], labels[index1+1:index2]))
         f.close()
 
         with open(train_csv, 'w') as f:
             writer = csv.writer(f)
-            writer.writerows(zip(imgs[index + 1:], labels[index + 1:]))
+            writer.writerows(zip(imgs[index2 + 1:], labels[index2 + 1:]))
         f.close()
 
         if verbose:
