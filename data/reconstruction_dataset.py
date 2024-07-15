@@ -91,61 +91,9 @@ class ReconstructionDataset(Dataset):
 
         img = np.load(img_name).astype('f')
         label = np.load(label_name).astype('f')
-        sample = {'image': img, 'label': label}
+        outline = np.load(os.path.join(os.path.dirname(label_name), 'outline.npy'))
+        sample = {'image': img, 'label': label, 'outline': outline}
 
-        if self.transform:
-            sample = self.transform(sample)
-
-        return sample
-
-class MemoryReconstructionDataset(Dataset):
-    """Reconstruction dataset."""
-
-    def __init__(self, csv_file, root_dir, transform=None):
-        """
-        Arguments:
-            csv_file (string): Path to the csv file with annotations.
-            root_dir (string): Directory with all the images.
-            transform (callable, optional): Optional transform to be applied
-                on a sample.
-        """
-        self.transform = transform
-        self.images, self.labels = self.create_memory_dataset(csv_file, root_dir)
-
-    def create_memory_dataset(self, csv_file, root_dir):
-        
-        df = pd.read_csv(csv_file)
-        img_paths = df.iloc[:, 0].to_list()
-        label_paths = df.iloc[:, 1].to_list()
-
-        imgs = []
-        labels = []
-
-        str = ''
-        label = None
-        for i in tqdm(range(len(img_paths)), 'Data to memory'):
-            if(str != label_paths[i]):
-                str = label_paths[i]
-                label_path = os.path.join(root_dir, str)
-                label = np.load(label_path)
-            img_path = os.path.join(root_dir, img_paths[i])
-
-            if i % 50000 == 0:
-                memory_usage = psutil.virtual_memory()
-                print(f"Memory Usage: {memory_usage.percent}%")
-                
-            img = np.load(img_path)
-            imgs.append(img)
-            labels.append(label)
-        
-        return imgs, labels
-            
-    def __len__(self):
-        return len(self.images)
-
-    def __getitem__(self, idx):
-
-        sample = {'image': self.images[idx], 'label': self.labels[idx]}
         if self.transform:
             sample = self.transform(sample)
 

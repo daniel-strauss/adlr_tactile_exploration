@@ -6,19 +6,19 @@
 # - avg reward: average reward over runs
 
 
-def dummy_reward(losses, occurrences, avg_reward):
+def dummy_reward(losses, occurrences):
     return 0
 
 
-def basic_reward(losses, occurrences, avg_reward):
-    return -losses[-1]
+def basic_reward(losses, occurrences):
+    return - 1000 * losses[-1]
 
 
-def reward_1(losses, occurrences, avg_reward):
+def reward_1(losses, occurrences):
     alph = -1
     bet = -1
 
-    missed = ('missed' in occurrences) * avg_reward
-    same = ('same' in occurrences) * avg_reward
+    missed = ('missed' in occurrences)
+    same = ('same' in occurrences)
 
     return (losses[-2] - losses[-1]) + alph * missed + bet * same

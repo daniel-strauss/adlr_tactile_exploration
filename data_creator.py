@@ -11,7 +11,7 @@ conv = DataConverter(
     tact_order=10,
     tact_number=1,
     rand_rotations=5,
-    test_split=0.1,
+    split=(0.8, 0.1, 0.1),
     save_float=False
 )
 
