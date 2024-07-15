@@ -94,10 +94,49 @@ class ShapeEnv(gym.Env):
         if self.outline_img[0, r_g, c_g] * v_g < 0.01:
             occurrences.append('missed')
         else:
+<<<<<<< HEAD
             self.grasp_points.append([r_g, c_g])
             self.grasp_point_img[0, r_g, c_g] = 1
             
         # 4. Infer reconstruction with new grasp point.
+=======
+            rr, cc = ski.draw.line(r1, c1, r2, c2)
+            self.rc_line = np.array([rr,cc])
+            # 2. Calculate intersection pixel of outline, handle case if object is missed (negative Reward?)
+
+            # try without antialiasing
+            # first occurence in line (going from c1,r1), where intersection is hit
+            inters_i = np.argmax(self.outline_img[0, rr, cc])
+
+            # no intersection found (we assume outline does not intersect cirlce), try with antialiasing
+            if inters_i == 0 or inters_i == len(rr)-1:
+
+                line_img = self.p_list_to_img_array(np.array((rr, cc)).transpose())
+                gauss_kernel = np.array([
+                    [0.5, 0.5, 0.5],
+                    [0.5, 1.0, 0.5],
+                    [0.5, 0.5, 0.5]
+                ])
+                # apply antialiasing wth gauss filter
+                line_img = (convolve2d(line_img.squeeze(), gauss_kernel.squeeze(), mode='same')
+                            .reshape((1, self.res, self.res)))
+                intersections = np.argwhere(line_img * self.outline_img > 0)
+
+                # missed
+                if len(intersections) == 0:
+                    occurrences.append('missed')
+                else:
+                    # find intersection closest to c_1,r_1
+                    inters_i = np.argmin((intersections[:, 0] - r1) ** 2 + intersections[:, 1] - c1 ** 2)
+
+            if 'missed' not in occurrences:
+                # save new grasp point
+                r_g, c_g = rr[inters_i], cc[inters_i]
+                self.grasp_points.append([r_g, c_g])
+                self.grasp_point_img[0, r_g, c_g] = 1
+
+        # 3. Infer reconstruction with new grasp point.
+>>>>>>> ea04482688f35762d1841b3c9addd43c055d6f3f
         loss, self.reconstruction_img = self.infer_reconstruction()
         self.losses.append(loss)
 
