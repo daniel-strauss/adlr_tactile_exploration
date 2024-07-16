@@ -135,7 +135,6 @@ class ShapeEnv(gym.Env):
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
-
         return self.observation  # reward, done, info can't be included
 
     def render(self, mode='human'):
@@ -189,7 +188,8 @@ class ShapeEnv(gym.Env):
 
     # Update observation
     def pack_observation(self):
-        return self.two_img_to_one(self.grasp_point_img, self.reconstruction_img)
+        img = self.two_img_to_one(self.grasp_point_img, self.reconstruction_img) * 255
+        return img.astype(np.uint8)
 
     # converts a list of points to image array, where each point has value one
     def p_list_to_img_array(self, p_list):

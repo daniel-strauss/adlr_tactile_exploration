@@ -12,19 +12,17 @@ from stable_baselines3.common.logger import configure
 import pickle
 import io
 
-
+from stable_baselines_code.callback import TensorboardCallback
 from stable_baselines_code.environment import ShapeEnv
 from stable_baselines_code.reward_functions import basic_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet # importing dummy net for test purposes
 
 
-tmp_path = "./rl_runs/"
-# set up logger
-new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
+tensorboard_path = "./rl_runs/"
 
 
 # use dummy rec net to save ram, for testing
-use_dummy_rec_net = False
+use_dummy_rec_net = True
 show_example_run = False
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -60,10 +58,10 @@ env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward)
 env.reset()
 
 # example satble baseline model
-model = A2C("MlpPolicy", "CartPole-v1", verbose=1)
+model = A2C("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
 # Set new logger
-model.set_logger(new_logger)
-model.learn(10000)
+#model.set_logger(new_logger)
+model.learn(10000, callback=TensorboardCallback(), tb_log_name=str(time.time()))
 
 # example run
 while show_example_run:
