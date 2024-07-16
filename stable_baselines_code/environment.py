@@ -1,5 +1,5 @@
 import os
-import gym
+import gymnasium as gym
 from gym import spaces
 import numpy as np
 import skimage as ski
@@ -16,7 +16,7 @@ TODOs:
 
 class ShapeEnv(gym.Env):
     """Custom Environment that follows gym interface"""
-    metadata = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human'], "render_fps": 30}
 
     res = 256  #todo, automate res extraction from data?
 
@@ -52,7 +52,8 @@ class ShapeEnv(gym.Env):
         plt.show()
 
         ######### on run variables #################
-        self.done = None
+        self.terminated = None
+        self.truncated = None
         self.label = None  # 2d shape to be reconstructed
         self.outline_img = None  # image of outline
         self.grasp_points = None  # list of grasp points
@@ -64,7 +65,6 @@ class ShapeEnv(gym.Env):
         self.reward = None
         self.step_i = None
         self.info = None
-        self.render_initialized = None
         self.rc_points = None # raycast points, needed for render
         self.rc_line = None
 
@@ -108,15 +108,15 @@ class ShapeEnv(gym.Env):
         # 6. Update observation
         self.observation = self.pack_observation()
 
-        # self.done = self.step_i == self.max_steps
-        self.done = len(self.grasp_points) == self.max_steps
+        self.terminated = self.step_i == self.max_steps
+        # self.terminated = len(self.grasp_points) == self.max_steps
 
-        return self.observation, self.reward, self.done, self.info
+        return self.observation, self.reward, self.terminated, self.truncated, self.info
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         self.step_i = 0
-        self.done = False
-        self.render_initialized = False
+        self.terminated = False
+        self.truncated = False
 
         sample = self.new_sample()
 
@@ -125,9 +125,8 @@ class ShapeEnv(gym.Env):
         self.grasp_points = []
         self.grasp_point_img = self.p_list_to_img_array(self.grasp_points)
 
-        initial_loss = 0
-        self.reconstruction_img = np.zeros((1, self.res, self.res))
-        self.losses = [initial_loss]
+        self.losses = []
+        self.metrics = []
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
@@ -142,7 +141,6 @@ class ShapeEnv(gym.Env):
         if len(self.grasp_points) > 0:
             gpa = np.array(self.grasp_points)
             self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'ro', label='Last Grasp Point')
-            print(gpa[:,0])
             self.ax_1.scatter(gpa[0:-1,0], gpa[0:-1,1], s=10, c='orange')
 
 
