@@ -7,3 +7,4 @@ intersection_test.py
 neural_nets/trained_rec.pkl
 neural_nets/best_trial.pkl
 .DS_Store
+smoke_test.zip
