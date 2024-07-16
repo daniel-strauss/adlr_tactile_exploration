@@ -1,6 +1,6 @@
 import os
 import gymnasium as gym
-from gym import spaces
+from gymnasium import spaces
 import numpy as np
 import skimage as ski
 from matplotlib import pyplot as plt
@@ -127,6 +127,8 @@ class ShapeEnv(gym.Env):
 
         self.losses = []
         self.metrics = []
+
+        self.reconstruction_img = np.zeros((1, self.res, self.res), 'f')
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
