@@ -75,5 +75,5 @@ while show_example_run:
     env.render()
     time.sleep(0.5)
     if done:
-        break
+        env.reset()
 env.close()

@@ -22,3 +22,13 @@ def reward_1(losses, metrics, occurrences):
     same = ('same' in occurrences)
 
     return (losses[-2] - losses[-1]) + alph * missed + bet * same
+
+
+def reward_2(losses, metrics, occurrences):
+    alph = -1
+    bet = -1
+
+    missed = ('missed' in occurrences)
+    same = ('same' in occurrences)
+
+    return metrics[-1] + alph * missed + bet * same
