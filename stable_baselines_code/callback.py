@@ -38,7 +38,7 @@ class TensorboardCallback(BaseCallback):
         """
         This method is called before the first rollout starts.
         """
-        self._log_freq = 1000  # log every n calls
+        self._log_freq = 10  # log every n calls
 
         output_formats = self.logger.output_formats
         # Save reference to tensorboard formatter object

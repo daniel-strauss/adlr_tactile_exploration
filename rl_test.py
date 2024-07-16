@@ -24,8 +24,8 @@ tensorboard_path = "./rl_runs/" + f'RL_{datetime.now().strftime("%Y-%m-%d--%H:%M
 
 
 # use dummy rec net to save ram, for testing
-use_dummy_rec_net = True
-show_example_run = False
+use_dummy_rec_net = False
+show_example_run = True
 
 class CPU_Unpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -74,5 +74,5 @@ while show_example_run:
     env.render()
     time.sleep(0.1)
     if done:
-        break
+        env.reset()
 env.close()
