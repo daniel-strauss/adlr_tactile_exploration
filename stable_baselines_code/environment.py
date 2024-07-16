@@ -60,6 +60,7 @@ class ShapeEnv(gym.Env):
         self.reconstruction_img = None  # output of network
         self.observation = None
         self.losses = []
+        self.metrics = []
         self.reward = None
         self.step_i = None
         self.info = None
@@ -97,11 +98,12 @@ class ShapeEnv(gym.Env):
             self.grasp_point_img[0, r_g, c_g] = 1
             
         # 4. Infer reconstruction with new grasp point.
-        loss, self.reconstruction_img = self.infer_reconstruction()
+        loss, metric, self.reconstruction_img = self.infer_reconstruction()
         self.losses.append(loss)
+        self.metrics.append(metric)
 
         # 5. Calculate reward (rel/abs decrease in loss)
-        self.reward = self.reward_func(self.losses, occurrences)
+        self.reward = self.reward_func(self.losses, self.metrics, occurrences)
 
         # 6. Update observation
         self.observation = self.pack_observation()
@@ -167,8 +169,16 @@ class ShapeEnv(gym.Env):
     # runs grasp points through reconstruction network and return loss and reconstruction
     def infer_reconstruction(self):
         reconstruction = self.rec_net(self.to_torch(self.grasp_point_img))
-        loss = self.loss_func(reconstruction, self.to_torch(self.label))
-        return loss.item(), self.from_torch(reconstruction)
+        label = self.to_torch(self.label)
+        loss = self.loss_func(reconstruction, label)
+
+        rec = (label >= 0.5)
+        lab = (label > 0)
+
+        n = torch.logical_or(rec, lab).float().sum()
+        metric = torch.logical_and(rec, lab).float().sum() * 100 / n
+
+        return loss.item(), metric.item(), self.from_torch(reconstruction)
 
     # Update observation
     def pack_observation(self):
