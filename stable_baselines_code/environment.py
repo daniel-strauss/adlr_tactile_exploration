@@ -38,7 +38,6 @@ class ShapeEnv(gym.Env):
 
         self.rec_net = rec_net  # reconstruction network
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.device = 'cpu'
         self.rec_net.to(self.device)
         self.rec_net.eval()
 

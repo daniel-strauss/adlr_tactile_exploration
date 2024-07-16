@@ -1,6 +1,5 @@
 import time
 import torch
-from ray.cloudpickle import pickle
 from torch import nn
 import numpy as np
 from neural_nets.models.unet import UNet3
@@ -10,15 +9,25 @@ from stable_baselines_code.environment import ShapeEnv
 from stable_baselines_code.reward_functions import basic_reward
 from stable_baselines3.common.env_checker import check_env
 
+import pickle
+import io
+
+class CPU_Unpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == 'torch.storage' and name == '_load_from_bytes':
+            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
+        else:
+            return super().find_class(module, name)
+
 trial_path = './neural_nets/best_trial.pkl'
 model_path = './neural_nets/trained_rec.pkl'
 
 with open(trial_path, 'rb') as pickle_file:
-    best_trial = pickle.load(pickle_file)
+    best_trial = CPU_Unpickler(pickle_file).load()
 pickle_file.close()
 
 with open(model_path, 'rb') as pickle_file:
-    states = pickle.load(pickle_file)
+    states = CPU_Unpickler(pickle_file).load()
 pickle_file.close()
 
 config = best_trial.config
