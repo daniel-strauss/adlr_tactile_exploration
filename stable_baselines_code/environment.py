@@ -32,9 +32,9 @@ class ShapeEnv(gym.Env):
         # Define action and observation space
         # They must be gym.spaces objects
         # Example when using discrete actions:
-        self.action_space = spaces.Box(low=0, high=len(self.c_cc)-1, shape=(2,), dtype=int)
+        self.action_space = spaces.MultiDiscrete([len(self.c_cc) for _ in range(2)])
         # Example for using image as input:
-        self.observation_space = spaces.Box(low=0, high=255, shape=(2,self.res, self.res), dtype=np.uint8)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(2, self.res, self.res), dtype=np.uint8)
 
         self.rec_net = rec_net  # reconstruction network
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -76,6 +76,9 @@ class ShapeEnv(gym.Env):
         # 1. Get start and end point of ray
         alpha = action[0]
         beta = action[1]
+
+        print(alpha)
+        print(beta)
 
         r1 = self.c_rr[alpha]
         c1 = self.c_cc[alpha]
