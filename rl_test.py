@@ -20,7 +20,7 @@ from stable_baselines_code.reward_functions import basic_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet # importing dummy net for test purposes
 
 
-tensorboard_path = "./rl_runs/"
+tensorboard_path = "./rl_runs/" + f'RL_{datetime.now().strftime("%Y-%m-%d--%H:%M:%S")}'
 
 
 # use dummy rec net to save ram, for testing
@@ -61,7 +61,7 @@ env.reset()
 
 # example satble baseline model
 model = A2C("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
-model.learn(10000, tb_log_name=datetime.now().strftime('%Y%m%d%H%M%S') )
+model.learn(10000, tb_log_name="TestTrain", callback=TensorboardCallback() )
 
 # example run
 

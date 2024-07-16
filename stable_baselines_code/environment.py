@@ -112,10 +112,13 @@ class ShapeEnv(gym.Env):
         self.terminated = self.step_i == self.max_steps
         # self.terminated = len(self.grasp_points) == self.max_steps
 
+        self.info["losses"] = self.losses
+        self.info["metrics"] = self.metrics
+
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
     def reset(self, seed=None, options=None):
-        self.info={}
+        self.info={"losses":[], "rewards":[]}
 
         self.step_i = 0
         self.terminated = False
@@ -179,7 +182,7 @@ class ShapeEnv(gym.Env):
         label = self.to_torch(self.label)
         loss = self.loss_func(reconstruction, label)
 
-        rec = (label >= 0.5)
+        rec = (reconstruction >= 0.5)
         lab = (label > 0)
 
         n = torch.logical_or(rec, lab).float().sum()

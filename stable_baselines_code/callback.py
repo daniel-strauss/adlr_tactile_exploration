@@ -1,8 +1,12 @@
+import numpy as np
 from stable_baselines3.common.callbacks import BaseCallback
 
 
 class TensorboardCallback(BaseCallback):
     """
+    # TODO: implement logging frequencies
+
+
     A custom callback that derives from ``BaseCallback``.
     This Callback Class adds shit to tensorboard
 
@@ -52,8 +56,18 @@ class TensorboardCallback(BaseCallback):
 
         :return: If the callback returns False, training is aborted early.
         """
-        return True
 
+        rewards = self.locals['rewards']
+        infos = self.locals['infos'][-1]
+        rec_losses = infos['losses']
+        metrics = infos['metrics']
+
+
+        self.logger.record('reward', np.mean(rewards))
+        self.logger.record('rec_losses', np.mean(rec_losses))
+        self.logger.record('metrics', np.mean(metrics))
+
+        return True
     def _on_rollout_end(self) -> None:
         """
         This event is triggered before updating the policy.
