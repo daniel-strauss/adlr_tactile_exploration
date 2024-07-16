@@ -1,4 +1,6 @@
 import time
+from datetime import datetime
+
 import torch
 from stable_baselines3 import A2C
 from torch import nn
@@ -59,7 +61,7 @@ env.reset()
 
 # example satble baseline model
 model = A2C("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
-model.learn(10000, callback=TensorboardCallback(), tb_log_name=str(time.time()))
+model.learn(10000, tb_log_name=datetime.now().strftime('%Y%m%d%H%M%S') )
 
 # example run
 
