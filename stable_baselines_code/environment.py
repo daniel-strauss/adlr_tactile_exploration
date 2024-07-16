@@ -34,7 +34,7 @@ class ShapeEnv(gym.Env):
         # Example when using discrete actions:
         self.action_space = spaces.Box(low=0, high=len(self.c_cc)-1, shape=(2,), dtype=int)
         # Example for using image as input:
-        self.observation_space = spaces.Box(low=0, high=1, shape=(self.res, self.res, 2), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(2,self.res, self.res), dtype=np.uint8)
 
         self.rec_net = rec_net  # reconstruction network
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -132,7 +132,6 @@ class ShapeEnv(gym.Env):
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
-
         return self.observation  # reward, done, info can't be included
 
     def render(self, mode='human'):
@@ -186,7 +185,8 @@ class ShapeEnv(gym.Env):
 
     # Update observation
     def pack_observation(self):
-        return self.two_img_to_one(self.grasp_point_img, self.reconstruction_img)
+        img = self.two_img_to_one(self.grasp_point_img, self.reconstruction_img) * 255
+        return img.astype(np.uint8)
 
     # converts a list of points to image array, where each point has value one
     def p_list_to_img_array(self, p_list):

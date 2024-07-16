@@ -22,7 +22,7 @@ tensorboard_path = "./rl_runs/"
 
 
 # use dummy rec net to save ram, for testing
-use_dummy_rec_net = False
+use_dummy_rec_net = True
 show_example_run = False
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -61,7 +61,7 @@ env.reset()
 model = A2C("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
 # Set new logger
 #model.set_logger(new_logger)
-model.learn(10000, callback=TensorboardCallback(), tb_log_name=time.time())
+model.learn(10000, callback=TensorboardCallback(), tb_log_name=str(time.time()))
 
 # example run
 while show_example_run:
