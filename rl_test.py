@@ -20,7 +20,7 @@ from stable_baselines_code.reward_functions import basic_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet # importing dummy net for test purposes
 
 
-tensorboard_path = "./rl_runs/"
+tensorboard_path = "./rl_runs/" + f'RL_{datetime.now().strftime("%Y-%m-%d--%H:%M:%S")}'
 
 
 # use dummy rec net to save ram, for testing
