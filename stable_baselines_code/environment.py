@@ -54,6 +54,7 @@ class ShapeEnv(gym.Env):
         ######### on run variables #################
         self.terminated = None
         self.truncated = None
+        self.info = {}
         self.label = None  # 2d shape to be reconstructed
         self.outline_img = None  # image of outline
         self.grasp_points = None  # list of grasp points
@@ -76,9 +77,6 @@ class ShapeEnv(gym.Env):
         # 1. Get start and end point of ray
         alpha = action[0]
         beta = action[1]
-
-        print(alpha)
-        print(beta)
 
         r1 = self.c_rr[alpha]
         c1 = self.c_cc[alpha]
@@ -120,6 +118,7 @@ class ShapeEnv(gym.Env):
         self.step_i = 0
         self.terminated = False
         self.truncated = False
+        self.info = {}
 
         sample = self.new_sample()
 
