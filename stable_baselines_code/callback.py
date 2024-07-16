@@ -1,10 +1,11 @@
 import numpy as np
 from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.logger import TensorBoardOutputFormat
 
 
 class TensorboardCallback(BaseCallback):
     """
-    # TODO: implement logging frequencies
+
 
 
     A custom callback that derives from ``BaseCallback``.
@@ -37,7 +38,16 @@ class TensorboardCallback(BaseCallback):
         """
         This method is called before the first rollout starts.
         """
-        pass
+        self._log_freq = 1000  # log every n calls
+
+        output_formats = self.logger.output_formats
+        # Save reference to tensorboard formatter object
+        # note: the failure case (not formatter found) is not handled here, should be done with try/except.
+        self.tb_formatter = next(formatter for formatter in output_formats if isinstance(formatter, TensorBoardOutputFormat))
+
+        self.rewards = []
+        self.rec_losses = []
+        self.metrics = []
 
     def _on_rollout_start(self) -> None:
         """
@@ -57,15 +67,32 @@ class TensorboardCallback(BaseCallback):
         :return: If the callback returns False, training is aborted early.
         """
 
-        rewards = self.locals['rewards']
+        self.rewards.append(self.locals['rewards'][-1])
         infos = self.locals['infos'][-1]
-        rec_losses = infos['losses']
-        metrics = infos['metrics']
+        self.rec_losses.append(infos['losses'][-1])
+        self.metrics.append(infos['metrics'][-1])
 
 
-        self.logger.record('reward', np.mean(rewards))
-        self.logger.record('rec_losses', np.mean(rec_losses))
-        self.logger.record('metrics', np.mean(metrics))
+        if self.num_timesteps % self._log_freq == 0:
+            # You can have access to info from the env using self.locals.
+            # for instance, when using one env (index 0 of locals["infos"]):
+            # lap_count = self.locals["infos"][0]["lap_count"]
+            # self.tb_formatter.writer.add_scalar("train/lap_count", lap_count, self.num_timesteps)
+
+
+
+            reward = np.mean(self.rewards)
+            self.rewards = []
+            rec_loss = np.mean(self.rec_losses)
+            self.rec_losses = []
+            metrics = np.mean(self.metrics)
+            self.metrics = []
+
+            self.tb_formatter.writer.add_scalar('custom/reward', np.mean(reward),  self.num_timesteps)
+            self.tb_formatter.writer.add_scalar('custom/rec_loss', np.mean(rec_loss),  self.num_timesteps)
+            self.tb_formatter.writer.add_scalar('custom/metrics', np.mean(metrics),  self.num_timesteps)
+
+            self.tb_formatter.writer.flush()
 
         return True
     def _on_rollout_end(self) -> None:
