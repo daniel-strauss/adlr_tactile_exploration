@@ -138,7 +138,11 @@ class ShapeEnv(gym.Env):
         self.ax_1.imshow(self.convert_for_imshow(self.outline_img))
 
         if len(self.grasp_points) > 0:
-            self.ax_1.plot(self.grasp_points[-1][0], self.grasp_points[-1][1], 'ro', label='Last Grasp Point')
+            gpa = np.array(self.grasp_points)
+            self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'ro', label='Last Grasp Point')
+            print(gpa[:,0])
+            self.ax_1.scatter(gpa[0:-1,0], gpa[0:-1,1], s=10, c='orange')
+
 
         self.ax_1.plot(self.c_rr, self.c_cc, 'b.', markersize=1)
 
