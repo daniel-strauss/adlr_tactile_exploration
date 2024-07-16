@@ -22,7 +22,7 @@ class ShapeEnv(gym.Env):
 
     max_steps = 10
 
-    def __init__(self, rec_net, dataset, loss_func, reward_func):
+    def __init__(self, rec_net, dataset, loss_func, reward_func, smoke=False):
         super(ShapeEnv, self).__init__()
 
         mid = int(self.res / 2)
@@ -41,6 +41,7 @@ class ShapeEnv(gym.Env):
         self.rec_net.to(self.device)
         self.rec_net.eval()
 
+        self.smoke = smoke
         self.dataset = dataset
         self.loss_func = loss_func  # loss function to evaluate reconstruction
         self.reward_func = reward_func  # reward_functions.py contains different reward functions for rl
@@ -174,6 +175,8 @@ class ShapeEnv(gym.Env):
 
     def new_sample(self):
         index = np.random.randint(0, len(self.dataset))
+        if self.smoke:
+            index = 10
         return self.dataset[index]
 
     # runs grasp points through reconstruction network and return loss and reconstruction
