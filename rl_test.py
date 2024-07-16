@@ -60,9 +60,9 @@ env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True)
 env.reset()
 
 # example satble baseline model
-# model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
-# model.learn(20000, tb_log_name=datetime.now().strftime('%Y%m%d%H%M%S'))
-# model.save('smoke_test')
+model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
+model.learn(20000, tb_log_name='TestTrain', callback=TensorboardCallback)
+model.save('smoke_test')
 
 # example run
 
