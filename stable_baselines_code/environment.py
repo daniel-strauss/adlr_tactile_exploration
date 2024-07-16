@@ -225,7 +225,7 @@ class ShapeEnv(gym.Env):
     # converts array of shape n,m,c to shape c,n,m
     @staticmethod
     def convert_for_imshow(a):
-        return a.transpose(2, 1, 0)
+        return a.transpose(2, 1, 0).astype(np.int32)
 
     @staticmethod
     def two_img_to_one(a, b):
