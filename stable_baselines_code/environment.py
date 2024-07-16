@@ -116,6 +116,8 @@ class ShapeEnv(gym.Env):
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
     def reset(self, seed=None, options=None):
+        self.info={}
+
         self.step_i = 0
         self.terminated = False
         self.truncated = False
