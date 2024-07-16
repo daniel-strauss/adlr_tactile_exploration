@@ -70,5 +70,5 @@ print(f"Best trail with a validation loss of {best_trial.metrics['loss']}")
 print(f"Config: {best_trial.config}")
 print(f"Checkpoint: {best_trial.checkpoint}")
 
-with open('../best_trial.pckl', 'wb') as f:
+with open('../best_trial.pkl', 'wb') as f:
     pickle.dump(best_trial, f)
