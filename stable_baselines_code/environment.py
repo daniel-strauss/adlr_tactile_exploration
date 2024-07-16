@@ -1,6 +1,6 @@
 import os
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import numpy as np
 import skimage as ski
 from matplotlib import pyplot as plt
@@ -16,7 +16,7 @@ TODOs:
 
 class ShapeEnv(gym.Env):
     """Custom Environment that follows gym interface"""
-    metadata = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human'], "render_fps": 30}
 
     res = 256  #todo, automate res extraction from data?
 
@@ -52,7 +52,8 @@ class ShapeEnv(gym.Env):
         plt.show()
 
         ######### on run variables #################
-        self.done = None
+        self.terminated = None
+        self.truncated = None
         self.label = None  # 2d shape to be reconstructed
         self.outline_img = None  # image of outline
         self.grasp_points = None  # list of grasp points
@@ -60,10 +61,10 @@ class ShapeEnv(gym.Env):
         self.reconstruction_img = None  # output of network
         self.observation = None
         self.losses = []
+        self.metrics = []
         self.reward = None
         self.step_i = None
         self.info = None
-        self.render_initialized = None
         self.rc_points = None # raycast points, needed for render
         self.rc_line = None
 
@@ -97,24 +98,25 @@ class ShapeEnv(gym.Env):
             self.grasp_point_img[0, r_g, c_g] = 1
             
         # 4. Infer reconstruction with new grasp point.
-        loss, self.reconstruction_img = self.infer_reconstruction()
+        loss, metric, self.reconstruction_img = self.infer_reconstruction()
         self.losses.append(loss)
+        self.metrics.append(metric)
 
         # 5. Calculate reward (rel/abs decrease in loss)
-        self.reward = self.reward_func(self.losses, occurrences)
+        self.reward = self.reward_func(self.losses, self.metrics, occurrences)
 
         # 6. Update observation
         self.observation = self.pack_observation()
 
-        # self.done = self.step_i == self.max_steps
-        self.done = len(self.grasp_points) == self.max_steps
+        self.terminated = self.step_i == self.max_steps
+        # self.terminated = len(self.grasp_points) == self.max_steps
 
-        return self.observation, self.reward, self.done, self.info
+        return self.observation, self.reward, self.terminated, self.truncated, self.info
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         self.step_i = 0
-        self.done = False
-        self.render_initialized = False
+        self.terminated = False
+        self.truncated = False
 
         sample = self.new_sample()
 
@@ -123,9 +125,10 @@ class ShapeEnv(gym.Env):
         self.grasp_points = []
         self.grasp_point_img = self.p_list_to_img_array(self.grasp_points)
 
-        initial_loss = 0
-        self.reconstruction_img = np.zeros((1, self.res, self.res))
-        self.losses = [initial_loss]
+        self.losses = []
+        self.metrics = []
+
+        self.reconstruction_img = np.zeros((1, self.res, self.res), 'f')
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
@@ -140,7 +143,6 @@ class ShapeEnv(gym.Env):
         if len(self.grasp_points) > 0:
             gpa = np.array(self.grasp_points)
             self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'ro', label='Last Grasp Point')
-            print(gpa[:,0])
             self.ax_1.scatter(gpa[0:-1,0], gpa[0:-1,1], s=10, c='orange')
 
 
@@ -171,8 +173,16 @@ class ShapeEnv(gym.Env):
     # runs grasp points through reconstruction network and return loss and reconstruction
     def infer_reconstruction(self):
         reconstruction = self.rec_net(self.to_torch(self.grasp_point_img))
-        loss = self.loss_func(reconstruction, self.to_torch(self.label))
-        return loss.item(), self.from_torch(reconstruction)
+        label = self.to_torch(self.label)
+        loss = self.loss_func(reconstruction, label)
+
+        rec = (label >= 0.5)
+        lab = (label > 0)
+
+        n = torch.logical_or(rec, lab).float().sum()
+        metric = torch.logical_and(rec, lab).float().sum() * 100 / n
+
+        return loss.item(), metric.item(), self.from_torch(reconstruction)
 
     # Update observation
     def pack_observation(self):

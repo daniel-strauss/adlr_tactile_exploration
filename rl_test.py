@@ -9,7 +9,6 @@ from neural_nets.utility_functions import load_data
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.logger import configure
 
-
 import pickle
 import io
 
@@ -23,8 +22,7 @@ tensorboard_path = "./rl_runs/"
 
 
 # use dummy rec net to save ram, for testing
-use_dummy_rec_net = True
-
+use_dummy_rec_net = False
 show_example_run = False
 
 class CPU_Unpickler(pickle.Unpickler):
