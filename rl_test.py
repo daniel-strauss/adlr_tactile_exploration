@@ -59,15 +59,15 @@ env.reset()
 
 # example satble baseline model
 model = A2C("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
-# Set new logger
-#model.set_logger(new_logger)
 model.learn(10000, callback=TensorboardCallback(), tb_log_name=str(time.time()))
 
 # example run
-while show_example_run:
+
+if show_example_run:
     print("Example Run")
+while show_example_run:
     action = env.action_space.sample()  # Sample random action
-    observation, reward, done, info = env.step(action)
+    observation, reward, done, truncated, info = env.step(action)
     print(reward)
     env.render()
     time.sleep(0.1)
