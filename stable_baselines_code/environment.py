@@ -89,7 +89,7 @@ class ShapeEnv(gym.Env):
         # 2. Cast a ray with anti-aliasing to prevent slip-throughs
         rr, cc, value = ski.draw.line_aa(r1, c1, r2, c2)
         self.rc_line = np.array([rr,cc,value])
-        inters_i = np.argmax(self.outline_img[0, rr, cc] * value)
+        inters_i = np.argmax(self.outline_img[0, rr, cc] * value > 0.01)
 
         # 3. Check if ray missed
         r_g, c_g, v_g = rr[inters_i], cc[inters_i], value[inters_i]
@@ -176,7 +176,7 @@ class ShapeEnv(gym.Env):
     def new_sample(self):
         index = np.random.randint(0, len(self.dataset))
         if self.smoke:
-            index = 10
+            index = 9
         return self.dataset[index]
 
     # runs grasp points through reconstruction network and return loss and reconstruction
@@ -225,7 +225,7 @@ class ShapeEnv(gym.Env):
 
     @staticmethod
     def from_torch(a):
-        return a[0].detach().numpy()
+        return a[0].cpu().detach().numpy()
 
     # converts a n,m array to a n,m,1 array
     @staticmethod

@@ -20,12 +20,12 @@ from stable_baselines_code.reward_functions import basic_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet # importing dummy net for test purposes
 
 
-tensorboard_path = "./rl_runs/" + f'RL_{datetime.now().strftime("%Y-%m-%d--%H:%M:%S")}'
+tensorboard_path = "./rl_runs/"
 
 
 # use dummy rec net to save ram, for testing
 use_dummy_rec_net = False
-show_example_run = True
+show_example_run = False
 
 class CPU_Unpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -57,23 +57,20 @@ train_set, eval_set, test_set = load_data(transform=None)
 dataset = torch.utils.data.ConcatDataset([train_set, eval_set])
 
 env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True)
-env.reset()
+observation = env.reset()
 
 # example satble baseline model
-# model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
-# model.learn(20000, tb_log_name=datetime.now().strftime('%Y%m%d%H%M%S'))
-# model.save('smoke_test')
+
+model = PPO.load('smoke_test', env)
 
 # example run
 
-if show_example_run:
-    print("Example Run")
-while show_example_run:
-    action = env.action_space.sample()  # Sample random action
+while True:
+    action, _states = model.predict(observation)  # Sample random action
     observation, reward, done, truncated, info = env.step(action)
     print(reward)
     env.render()
     time.sleep(0.5)
     if done:
-        env.reset()
+        break
 env.close()
