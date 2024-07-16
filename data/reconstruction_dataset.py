@@ -98,6 +98,41 @@ class ReconstructionDataset(Dataset):
             sample = self.transform(sample)
 
         return sample
+    
+class ReinforcementDataset(Dataset):
+    def __init__(self, csv_file, root_dir, transform=None):
+        """
+        Arguments:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        annotation_frame = pd.read_csv(csv_file)
+        self.labels = annotation_frame.iloc[:,1].drop_duplicates()
+        self.root_dir = root_dir
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.annotation_frame)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        label_path = os.path.join(self.root_dir,
+                                  self.labels.iloc[idx])
+        
+        outline_path = os.path.join(os.path.dirname(label_path), 'outline.npy')
+
+        label = np.load(label_path).astype('f')
+        outline = np.load(outline_path)
+        sample = {'label': label, 'outline': outline}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
 
 
 """

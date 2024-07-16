@@ -22,7 +22,7 @@ class ShapeEnv(gym.Env):
 
     max_steps = 10
 
-    def __init__(self, rec_net, dataset, loss_func, reward_func, smoke=False):
+    def __init__(self, rec_net, dataset, loss_func, reward_func, cuda=True, smoke=False):
         super(ShapeEnv, self).__init__()
 
         mid = int(self.res / 2)
@@ -37,7 +37,10 @@ class ShapeEnv(gym.Env):
         self.observation_space = spaces.Box(low=0, high=255, shape=(2, self.res, self.res), dtype=np.uint8)
 
         self.rec_net = rec_net  # reconstruction network
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        if not cuda:
+            self.device = torch.device('cpu')
+        else:
+            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.rec_net.to(self.device)
         self.rec_net.eval()
 
@@ -95,6 +98,8 @@ class ShapeEnv(gym.Env):
         r_g, c_g, v_g = rr[inters_i], cc[inters_i], value[inters_i]
         if self.outline_img[0, r_g, c_g] * v_g < 0.01:
             occurrences.append('missed')
+        elif self.grasp_point_img[0, r_g, c_g] == 1:
+            occurrences.append('double')
         else:
             self.grasp_points.append([r_g, c_g])
             self.grasp_point_img[0, r_g, c_g] = 1
