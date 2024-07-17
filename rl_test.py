@@ -24,7 +24,7 @@ tensorboard_path = "./rl_runs/" + f'RL_{datetime.now().strftime("%Y-%m-%d--%H:%M
 
 
 # use dummy rec net to save ram, for testing
-use_dummy_rec_net = False
+use_dummy_rec_net = True
 show_example_run = True
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -61,7 +61,7 @@ env.reset()
 
 # example satble baseline model
 model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
-model.learn(20000, tb_log_name='TestTrain', callback=TensorboardCallback)
+model.learn(20000, tb_log_name='TestTrain', callback=TensorboardCallback())
 model.save('smoke_test')
 
 # example run

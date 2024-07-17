@@ -108,8 +108,8 @@ class ReinforcementDataset(Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
-        annotation_frame = pd.read_csv(csv_file)
-        self.labels = annotation_frame.iloc[:,1].drop_duplicates()
+        self.annotation_frame = pd.read_csv(csv_file)
+        self.labels = self.annotation_frame.iloc[:,1].drop_duplicates()
         self.root_dir = root_dir
         self.transform = transform
 
