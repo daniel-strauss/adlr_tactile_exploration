@@ -148,7 +148,7 @@ class ShapeEnv(gym.Env):
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
-        return self.observation, self.info  # reward, done, info can't be included
+        return self.observation#, self.info  # reward, done, info can't be included
 
     def render(self, mode='human'):
         if not self.render_initialized:

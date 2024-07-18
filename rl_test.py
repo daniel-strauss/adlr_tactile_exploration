@@ -68,7 +68,7 @@ else:
 train_set, eval_set, test_set = load_rl_data(transform=None)
 
 smoke = False
-observation_1D = True
+observation_1D = False
 reward = complex_reward
 
 env = ShapeEnv(rec_net, train_set, nn.BCELoss(), reward, smoke=smoke, observation_1D=observation_1D)
