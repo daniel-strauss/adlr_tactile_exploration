@@ -56,12 +56,12 @@ else:
 train_set, eval_set, test_set = load_rl_data(transform=None)
 dataset = torch.utils.data.ConcatDataset([train_set, eval_set])
 
-env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True, observation_1D=False)
+env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True, observation_1D=True)
 env.reset()
 
 # example satble baseline model
 model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=tensorboard_path)
-model.learn(20000, tb_log_name='TestTrain', callback=TensorboardCallback())
+model.learn(1, tb_log_name='TestTrain', callback=TensorboardCallback())
 model.save('smoke_test')
 
 # example run
