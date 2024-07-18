@@ -58,6 +58,7 @@ class ShapeEnv(gym.Env):
         self.fig, self.ax_1, self.ax_2 = None, None, None
         self.render_initialized = False  # call plt.show on_render, to not have the shitty plt window al the time
 
+
         ######### on run variables #################
         self.terminated = None
         self.truncated = None
@@ -148,7 +149,9 @@ class ShapeEnv(gym.Env):
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
-        return self.observation#, self.info  # reward, done, info can't be included
+
+        return self.observation, self.info  # reward, done, info should be included
+
 
     def render(self, mode='human'):
         if not self.render_initialized:

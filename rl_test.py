@@ -74,6 +74,7 @@ reward = complex_reward
 env = ShapeEnv(rec_net, train_set, nn.BCELoss(), reward, smoke=smoke, observation_1D=observation_1D)
 env.reset()
 
+
 eval_env = ShapeEnv(rec_net, eval_set, nn.BCELoss(), reward, smoke=smoke, observation_1D=observation_1D)
 eval_env.reset()
 

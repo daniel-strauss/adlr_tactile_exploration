@@ -16,7 +16,7 @@ import io
 
 from stable_baselines_code.callback import TensorboardCallback
 from stable_baselines_code.environment import ShapeEnv
-from stable_baselines_code.reward_functions import basic_reward
+from stable_baselines_code.reward_functions import basic_reward, complex_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet # importing dummy net for test purposes
 
 
@@ -54,14 +54,13 @@ else:
     rec_net = DummyRecNet()
 
 train_set, eval_set, test_set = load_rl_data(transform=None)
-dataset = torch.utils.data.ConcatDataset([train_set, eval_set])
 
-env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True)
+env = ShapeEnv(rec_net, train_set, nn.BCELoss(), complex_reward, smoke=False)
 observation = env.reset()
 
 # example satble baseline model
 
-model = PPO.load('smoke_test', env)
+model = PPO.load('500k2', env)
 
 # example run
 
