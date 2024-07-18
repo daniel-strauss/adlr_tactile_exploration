@@ -22,7 +22,7 @@ class ShapeEnv(gym.Env):
 
     max_steps = 10
 
-    def __init__(self, rec_net, dataset, loss_func, reward_func, smoke=False):
+    def __init__(self, rec_net, dataset, loss_func, reward_func, observation_1D=False, cuda=True, smoke=False):
         super(ShapeEnv, self).__init__()
 
         mid = int(self.res / 2)
@@ -34,10 +34,17 @@ class ShapeEnv(gym.Env):
         # Example when using discrete actions:
         self.action_space = spaces.MultiDiscrete([len(self.c_cc) for _ in range(2)])
         # Example for using image as input:
-        self.observation_space = spaces.Box(low=0, high=255, shape=(2, self.res, self.res), dtype=np.uint8)
+        self.observation_1D = observation_1D
+        if self.observation_1D:
+            self.observation_space = spaces.Box(low=0, high=255, shape=(1, self.res, self.res), dtype=np.uint8)
+        else:
+            self.observation_space = spaces.Box(low=0, high=255, shape=(2, self.res, self.res), dtype=np.uint8)
 
         self.rec_net = rec_net  # reconstruction network
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        if not cuda:
+            self.device = torch.device('cpu')
+        else:
+            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.rec_net.to(self.device)
         self.rec_net.eval()
 
@@ -95,6 +102,8 @@ class ShapeEnv(gym.Env):
         r_g, c_g, v_g = rr[inters_i], cc[inters_i], value[inters_i]
         if self.outline_img[0, r_g, c_g] * v_g < 0.01:
             occurrences.append('missed')
+        elif self.grasp_point_img[0, r_g, c_g] == 1:
+            occurrences.append('double')
         else:
             self.grasp_points.append([r_g, c_g])
             self.grasp_point_img[0, r_g, c_g] = 1
@@ -162,7 +171,10 @@ class ShapeEnv(gym.Env):
         self.ax_1.legend()
 
         self.ax_2.clear()
-        self.ax_2.imshow(self.convert_for_imshow(self.add_zero_channel(self.observation)))
+        if self.observation_1D:
+            self.ax_2.imshow(self.convert_for_imshow(self.observation))
+        else:
+            self.ax_2.imshow(self.convert_for_imshow(self.add_zero_channel(self.observation)))
         self.fig.canvas.draw()
         plt.pause(.1)
 
@@ -195,7 +207,10 @@ class ShapeEnv(gym.Env):
 
     # Update observation
     def pack_observation(self):
-        img = self.two_img_to_one(self.grasp_point_img, self.reconstruction_img) * 255
+        if self.observation_1D:
+            img = self.reconstruction_img * 255
+        else:
+            img = self.two_img_to_one(self.grasp_point_img, self.reconstruction_img) * 255
         return img.astype(np.uint8)
 
     # converts a list of points to image array, where each point has value one

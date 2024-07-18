@@ -13,6 +13,13 @@ def dummy_reward(losses, metrics, occurrences):
 def basic_reward(losses, metrics, occurrences):
     return metrics[-1]
 
+def complex_reward(losses, metrics, occurences):
+    if 'missed' in occurences:
+        return -100
+    if 'double' in occurences:
+        return -100
+    
+    return metrics[-1]
 
 def reward_1(losses, metrics, occurrences):
     alph = -1

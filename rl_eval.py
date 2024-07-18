@@ -6,7 +6,7 @@ from stable_baselines3 import A2C, PPO
 from torch import nn
 import numpy as np
 from neural_nets.models.unet import UNet3
-from neural_nets.utility_functions import load_data
+from neural_nets.utility_functions import load_rl_data
 
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.logger import configure
@@ -53,7 +53,7 @@ if not use_dummy_rec_net:
 else:
     rec_net = DummyRecNet()
 
-train_set, eval_set, test_set = load_data(transform=None)
+train_set, eval_set, test_set = load_rl_data(transform=None)
 dataset = torch.utils.data.ConcatDataset([train_set, eval_set])
 
 env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True)
