@@ -5,12 +5,9 @@ import torch
 from stable_baselines3 import A2C, PPO
 from torch import nn
 import numpy as np
-from neural_nets.models.unet import UNet3
+from neural_nets.rec_net import RecNet
 from neural_nets.utility_functions import load_rl_data
 from stable_baselines3.common.evaluation import evaluate_policy
-
-import pickle
-import io
 
 from stable_baselines_code.callback import TensorboardCallback
 from stable_baselines_code.environment import ShapeEnv
@@ -19,7 +16,7 @@ from stable_baselines_code.example_usage_environment import DummyRecNet  # impor
 
 tensorboard_path = "./rl_runs/" + f'RL_{datetime.now().strftime("%Y-%m-%d--%H:%M:%S")}'
 
-debug_mode = True
+debug_mode = False
 
 # use dummy rec net to save ram, for testing
 use_dummy_rec_net = debug_mode
@@ -39,31 +36,10 @@ def run_example(n):
     env.close()
 
 
-class CPU_Unpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        if module == 'torch.storage' and name == '_load_from_bytes':
-            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
-        else:
-            return super().find_class(module, name)
-
-
 trial_path = './neural_nets/best_trial.pkl'
 rec_net_path = './neural_nets/trained_rec.pkl'
 
-if not use_dummy_rec_net:
-    with open(trial_path, 'rb') as pickle_file:
-        best_trial = CPU_Unpickler(pickle_file).load()
-    pickle_file.close()
-
-    with open(rec_net_path, 'rb') as pickle_file:
-        states = CPU_Unpickler(pickle_file).load()
-    pickle_file.close()
-
-    config = best_trial.config
-    rec_net = UNet3(config)
-    rec_net.load_state_dict(states['net_state_dict'])
-else:
-    rec_net = DummyRecNet()
+rec_net = RecNet(dummy=use_dummy_rec_net)
 
 train_set, eval_set, test_set = load_rl_data(transform=None)
 
@@ -71,11 +47,10 @@ smoke = False
 observation_1D = False
 reward = complex_reward
 
-env = ShapeEnv(rec_net, train_set, nn.BCELoss(), reward, smoke=smoke, observation_1D=observation_1D)
+env = ShapeEnv(rec_net, train_set, reward, smoke=smoke, observation_1D=observation_1D)
 env.reset()
 
-
-eval_env = ShapeEnv(rec_net, eval_set, nn.BCELoss(), reward, smoke=smoke, observation_1D=observation_1D)
+eval_env = ShapeEnv(rec_net, eval_set, reward, smoke=smoke, observation_1D=observation_1D)
 eval_env.reset()
 
 if debug_mode:
@@ -99,8 +74,9 @@ mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
 print(f'Before Training: {mean_reward} +- {std_reward}')
 
 for i in range(iter):
-    model.learn(learn_steps, tb_log_name='500K', progress_bar=True, callback=TensorboardCallback())
-    model.save('./rl_models/500k' + str(i))
+    print(iter)
+    model.learn(learn_steps, tb_log_name='obs500k', progress_bar=True, callback=TensorboardCallback())
+    model.save('./rl_models/obs500k' + str(i))
 
 mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
 print(f'After Training: {mean_reward} +- {std_reward}')
