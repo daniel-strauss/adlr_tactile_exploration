@@ -15,9 +15,9 @@ def basic_reward(losses, metrics, occurrences):
 
 def complex_reward(losses, metrics, occurences):
     if 'missed' in occurences:
-        return -100
+        return -10
     if 'double' in occurences:
-        return -100
+        return -10
     
     return metrics[-1]
 
