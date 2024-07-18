@@ -5,7 +5,7 @@ import torch
 import pandas as pd
 from skimage import io, transform
 import numpy as np
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import psutil
@@ -20,8 +20,7 @@ Helper functions for displaying data
 
 def show_datapair(image, label):
     """Show tactile points with object shape"""
-    fig, axs = plt.subplots(1, 2, sharey=True)
-    fig.subplots_adjust(wspace=0)
+    fig, axs = plt.subplots(1, 2, fig_size=(12, 6))
     axs[0].imshow(image[0])
     axs[0].set_axis_off()
     axs[1].imshow(label[0])
@@ -30,8 +29,7 @@ def show_datapair(image, label):
 
 def show_datatripple(input, label, output):
     """Show tactile points with object shape"""
-    fig, axs = plt.subplots(1, 3, sharey=True)
-    fig.subplots_adjust(wspace=0)
+    fig, axs = plt.subplots(1, 3, fig_size=(18, 6))
     axs[0].imshow(input[0])
     axs[0].set_axis_off()
     axs[1].imshow(label[0])

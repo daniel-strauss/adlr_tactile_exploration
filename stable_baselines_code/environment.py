@@ -56,7 +56,6 @@ class ShapeEnv(gym.Env):
         # Matplotlib figures for rendering
         plt.ion()
         self.fig, (self.ax_1, self.ax_2) = plt.subplots(1, 2, figsize=(12, 6))
-        self.render_initialized = False
         plt.show()
 
         ######### on run variables #################
@@ -149,7 +148,7 @@ class ShapeEnv(gym.Env):
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
-        return self.observation  # reward, done, info can't be included
+        return self.observation, self.info  # reward, done, info can't be included
 
     def render(self, mode='human'):
 

@@ -56,7 +56,7 @@ train_set, eval_set, test_set = load_rl_data(transform=None)
 env = ShapeEnv(rec_net, train_set, nn.BCELoss(), complex_reward, smoke=False)
 env.reset()
 
-eval_env = ShapeEnv(rec_net, train_set, nn.BCELoss(), complex_reward, smoke=False)
+eval_env = ShapeEnv(rec_net, eval_set, nn.BCELoss(), complex_reward, smoke=False)
 env.reset()
 
 # example satble baseline model
@@ -69,7 +69,7 @@ for i in range(10):
     model.learn(50000, tb_log_name='500K', progress_bar=True, callback=TensorboardCallback())
     model.save('500k' + str(i))
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
 print(f'After Training: {mean_reward} +- {std_reward}')
 
 # example run

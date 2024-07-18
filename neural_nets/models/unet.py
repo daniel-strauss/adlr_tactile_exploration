@@ -72,7 +72,7 @@ class UNet3(nn.Module):
 
 
 class UNet1(nn.Module):
-    def __init__(self, t_h : THparams = None):
+    def __init__(self):
         super().__init__()
         self.enc1 = self.contracting_block(1, 64)
         self.enc2 = self.contracting_block(64, 128)
@@ -143,7 +143,7 @@ class UNet1(nn.Module):
 
 
 class UNetSmall(nn.Module):
-    def __init__(self, t_h : THparams = None):
+    def __init__(self):
         super(UNetSmall, self).__init__()
         self.enc1 = self.contracting_block(1, 64)
         self.enc2 = self.contracting_block(64, 128)
