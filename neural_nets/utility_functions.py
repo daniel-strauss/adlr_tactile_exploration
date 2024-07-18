@@ -13,47 +13,47 @@ import ray.cloudpickle as pickle
 from pathlib import Path
 
 standard_config: dict = {
-        'batch_size': 256,
-        'epochs': 10,
-        'num_workers': 8,
-        'smoke': False,
-        
-        'lr': 1e-5,
-        'weight_decay': 0,
-        'optimizer': optim.Adam,
-        'loss_func': nn.BCELoss(),
+    'batch_size': 256,
+    'epochs': 10,
+    'num_workers': 8,
+    'smoke': False,
 
-        'model': UNet3,
-        'depth': 5,
-        'channels': 64
-    }
+    'lr': 1e-5,
+    'weight_decay': 0,
+    'optimizer': optim.Adam,
+    'loss_func': nn.BCELoss(),
 
-def load_data(dir='./datasets/2D_shapes', transform = ToTensor()):
+    'model': UNet3,
+    'depth': 5,
+    'channels': 64
+}
 
+
+def load_data(dir='./datasets/2D_shapes', transform=ToTensor()):
     test_path = os.path.join(dir, 'test.csv')
     eval_path = os.path.join(dir, 'eval.csv')
     train_path = os.path.join(dir, 'train.csv')
-    
+
     test_set = ReconstructionDataset(test_path, dir, ToTensor())
     eval_set = ReconstructionDataset(eval_path, dir, transform)
     train_set = ReconstructionDataset(train_path, dir, transform)
-    
+
     return train_set, eval_set, test_set
 
-def load_rl_data(dir='./datasets/2D_shapes', transform = ToTensor()):
 
+def load_rl_data(dir='./datasets/2D_shapes', transform=ToTensor()):
     test_path = os.path.join(dir, 'test.csv')
     eval_path = os.path.join(dir, 'eval.csv')
     train_path = os.path.join(dir, 'train.csv')
-    
+
     test_set = ReinforcementDataset(test_path, dir, ToTensor())
     eval_set = ReinforcementDataset(eval_path, dir, transform)
     train_set = ReinforcementDataset(train_path, dir, transform)
-    
+
     return train_set, eval_set, test_set
 
-def train_reconstruction(config, train_set:Dataset, eval_set:Dataset):
 
+def train_reconstruction(config, train_set: Dataset, eval_set: Dataset):
     model = config['model'](config)
     device = 'cpu'
     if torch.cuda.is_available():

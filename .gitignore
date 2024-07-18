@@ -3,6 +3,7 @@ __pycache__
 testing.ipynb
 runs/
 rl_runs/
+rl_models/
 .ipynb_checkpoints
 intersection_test.py
 neural_nets/trained_rec.pkl

@@ -14,6 +14,7 @@ TODOs:
   - optional: instead of numpy use torch for better performance 
 '''
 
+
 class ShapeEnv(gym.Env):
     """Custom Environment that follows gym interface"""
     metadata = {'render.modes': ['human'], "render_fps": 30}
@@ -54,10 +55,8 @@ class ShapeEnv(gym.Env):
         self.reward_func = reward_func  # reward_functions.py contains different reward functions for rl
 
         # Matplotlib figures for rendering
-        plt.ion()
-        self.fig, (self.ax_1, self.ax_2) = plt.subplots(1, 2, figsize=(12, 6))
-        self.render_initialized = False
-        plt.show()
+        self.fig, self.ax_1, self.ax_2 = None, None, None
+        self.render_initialized = False  # call plt.show on_render, to not have the shitty plt window al the time
 
         ######### on run variables #################
         self.terminated = None
@@ -74,7 +73,7 @@ class ShapeEnv(gym.Env):
         self.reward = None
         self.step_i = None
         self.info = None
-        self.rc_points = None # raycast points, needed for render
+        self.rc_points = None  # raycast points, needed for render
         self.rc_line = None
 
     def step(self, action):
@@ -95,7 +94,7 @@ class ShapeEnv(gym.Env):
 
         # 2. Cast a ray with anti-aliasing to prevent slip-throughs
         rr, cc, value = ski.draw.line_aa(r1, c1, r2, c2)
-        self.rc_line = np.array([rr,cc,value])
+        self.rc_line = np.array([rr, cc, value])
         inters_i = np.argmax(self.outline_img[0, rr, cc] * value > 0.01)
 
         # 3. Check if ray missed
@@ -107,7 +106,7 @@ class ShapeEnv(gym.Env):
         else:
             self.grasp_points.append([r_g, c_g])
             self.grasp_point_img[0, r_g, c_g] = 1
-            
+
         # 4. Infer reconstruction with new grasp point.
         loss, metric, self.reconstruction_img = self.infer_reconstruction()
         self.losses.append(loss)
@@ -128,7 +127,7 @@ class ShapeEnv(gym.Env):
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
     def reset(self, seed=None, options=None):
-        self.info={"losses":[], "rewards":[]}
+        self.info = {"losses": [], "rewards": []}
 
         self.step_i = 0
         self.terminated = False
@@ -149,23 +148,30 @@ class ShapeEnv(gym.Env):
 
         # grasp_point_image, reconstruction_output, so a two layer image for each grasp points and output
         self.observation = self.pack_observation()
-        return self.observation  # reward, done, info can't be included
+        return self.observation, self.info  # reward, done, info can't be included
 
     def render(self, mode='human'):
+        if not self.render_initialized:
+            plt.ion()
+            self.fig, (self.ax_1, self.ax_2) = plt.subplots(1, 2, figsize=(12, 6))
+            self.render_initialized = False
+            plt.show()
+            self.render_initialized = True
 
         self.ax_1.clear()
-        self.ax_1.imshow(self.convert_for_imshow(self.outline_img))
+        self.ax_1.imshow(self.convert_for_imshow(
+            self.add_zero_channel(
+                self.two_img_to_one(self.outline_img, self.reconstruction_img > 0.5))))
 
         if len(self.grasp_points) > 0:
             gpa = np.array(self.grasp_points)
             self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'ro', label='Last Grasp Point')
-            self.ax_1.scatter(gpa[0:-1,0], gpa[0:-1,1], s=10, c='orange')
-
+            self.ax_1.scatter(gpa[0:-1, 0], gpa[0:-1, 1], s=10, c='orange')
 
         self.ax_1.plot(self.c_rr, self.c_cc, 'b.', markersize=1)
 
-        self.ax_1.plot(self.rc_points[0,0], self.rc_points[0,1], 'go', label='Alpha')
-        self.ax_1.plot(self.rc_points[1,0], self.rc_points[1,1], 'bo', label='Beta')
+        self.ax_1.plot(self.rc_points[0, 0], self.rc_points[0, 1], 'go', label='Alpha')
+        self.ax_1.plot(self.rc_points[1, 0], self.rc_points[1, 1], 'bo', label='Beta')
         self.ax_1.scatter(self.rc_line[0], self.rc_line[1], s=.5, c='r')
 
         self.ax_1.legend()
@@ -223,7 +229,7 @@ class ShapeEnv(gym.Env):
         return a
 
     def add_zero_channel(self, a):
-        zeros = self.add_color_dim(np.zeros(a.shape[1:]))
+        zeros = self.add_color_dim(np.zeros(a.shape[1:], dtype=a.dtype))
         return self.two_img_to_one(a, zeros)
 
     # converts imgarray to list of points
@@ -250,7 +256,10 @@ class ShapeEnv(gym.Env):
     # converts array of shape n,m,c to shape c,n,m
     @staticmethod
     def convert_for_imshow(a):
-        return a.transpose(2, 1, 0).astype(np.int32)
+        if a.dtype == np.int8:
+            return a.transpose(2, 1, 0).astype(np.int32)
+        else:
+            return a.transpose(2, 1, 0)
 
     @staticmethod
     def two_img_to_one(a, b):
