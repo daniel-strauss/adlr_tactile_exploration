@@ -56,7 +56,7 @@ else:
 train_set, eval_set, test_set = load_rl_data(transform=None)
 dataset = torch.utils.data.ConcatDataset([train_set, eval_set])
 
-env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True)
+env = ShapeEnv(rec_net, dataset, nn.BCELoss(), basic_reward, smoke=True, observation_1D=False)
 env.reset()
 
 # example satble baseline model
