@@ -66,7 +66,7 @@ model = PPO.load('smoke_test', env)
 # example run
 
 while True:
-    action, _states = model.predict(observation)  # Sample random action
+    action, _states = model.predict(observation, deterministic=False)  # Sample random action
     observation, reward, done, truncated, info = env.step(action)
     print(reward)
     env.render()
