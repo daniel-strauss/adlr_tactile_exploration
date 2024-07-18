@@ -100,7 +100,6 @@ class ShapeEnv(gym.Env):
             self.grasp_point_img[0, r_g, c_g] = 1
 
         # 4. Infer reconstruction with new grasp point.
-        print(self.grasp_point_img.shape)
         loss, metric, self.reconstruction_img = self.rec_net.infer(self.grasp_point_img, self.label)
         self.losses.append(loss)
         self.metrics.append(metric)
