@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from torch import from_numpy
 import torch
 
-
+from plots_plakat.color_shemes import  main_colorscheme
 from util_functions import from_torch, add_color_dim, two_img_to_one, img_array_to_p_list, convert_for_imshow, \
     add_zero_channel
 
@@ -27,13 +27,6 @@ class ShapeEnv(gym.Env):
     max_steps = 10
 
 
-    colorscheme = \
-        {"background": np.array([1,1,1]),
-         0: np.array([0.98823529, 0.63921569, 0.06666667]), # primary image chanel
-         1: np.array([0.87058824, 0.30196078, 0.5254902 ]), #secondary image channel
-         2: np.array([0.392,0.066,0.247]), # tertiary image channel
-         3: np.array([0.83137255, 0.8627451 , 1.        ]),
-         4: np.array([0.05490196, 0.41960784, 0.65882353])}
 
 
     def __init__(self, rec_net, dataset, reward_func, observation_1D=False, smoke=False):
@@ -66,6 +59,8 @@ class ShapeEnv(gym.Env):
 
 
         self.total_steps = 0
+
+        self.colorscheme = main_colorscheme
 
         ######### on run variables #################
         self.terminated = None
