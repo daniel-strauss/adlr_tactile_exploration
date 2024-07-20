@@ -21,12 +21,15 @@ rec_net = RecNet(dummy=use_dummy_rec_net)
 
 train_set, eval_set, test_set = load_rl_data(transform=None)
 
-env = ShapeEnv(rec_net, eval_set, improve_reward, smoke=False)
+
+env = ShapeEnv(rec_net, train_set, complex_reward, smoke=False)
 observation, info = env.reset()
 
-# example satble baseline model
-
+#  stable baseline model
+#filename = 'rl_models/rl_models/punish_miss_free_rays/obs500k7.zip'
+#model = PPO.load(filename, env)
 model = PPO.load('rl_models/rew500k9', env)
+
 
 # example run
 i = 0

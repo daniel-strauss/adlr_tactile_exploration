@@ -54,9 +54,9 @@ eval_env = ShapeEnv(rec_net, eval_set, reward, smoke=smoke, observation_1D=obser
 eval_env.reset()
 
 if debug_mode:
-    n_steps = 2
-    learn_steps = 2
-    iter = 0
+    n_steps = 2000
+    learn_steps = 20000
+    iter = 0#10
 else:
     n_steps = 2000
     learn_steps = 50000
@@ -70,15 +70,19 @@ model = PPO("CnnPolicy", env, verbose=1,
             n_steps=n_steps,
             batch_size=50)
 
-mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
-print(f'Before Training: {mean_reward} +- {std_reward}')
+
+
+if not debug_mode:
+    mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
+    print(f'Before Training: {mean_reward} +- {std_reward}')
 
 for i in range(iter):
     model.learn(learn_steps, tb_log_name='rew500k', progress_bar=True, callback=TensorboardCallback())
     model.save('./rl_models/rew500k' + str(i))
 
-mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
-print(f'After Training: {mean_reward} +- {std_reward}')
+if not debug_mode:
+    mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
+    print(f'After Training: {mean_reward} +- {std_reward}')
 
 # example run
 if show_example_run:
