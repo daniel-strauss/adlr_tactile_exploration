@@ -7,9 +7,12 @@ def main():
     train_set, eval_set, test_set = load_data()
     smoke_set = Subset(eval_set, range(12))
     rec_net = RecNet()
-    loss = rec_net.infer_dataset(smoke_set)
-    print(loss.shape)
-    return True
+
+    train_loss = rec_net.infer_dataset(train_set)
+    val_loss = rec_net.infer_dataset(eval_set)
+    test_loss = rec_net.infer_dataset(test_set)
+
+    print(f'Train loss: {train_loss}\nValidation loss: {val_loss}\nTest loss: {test_loss}')
 
 if __name__ == '__main__':
     main()

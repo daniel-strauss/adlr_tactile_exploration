@@ -126,7 +126,7 @@ class ShapeEnv(gym.Env):
         self.truncated = False
         self.info = {}
 
-        sample = self.new_sample()
+        sample = self.new_sample(options)
 
         self.label = sample['label']
         self.outline_img = self.p_list_to_img_array(sample['outline'].squeeze())
@@ -184,10 +184,12 @@ class ShapeEnv(gym.Env):
 
     ############################# Helpfull Functions ############################
 
-    def new_sample(self):
-        index = np.random.randint(0, len(self.dataset))
-        if self.smoke:
-            index = 9
+    def new_sample(self, options):
+        if options is not None and 'index' in options:
+            index = options['index']
+        else:
+            index = np.random.randint(0, len(self.dataset))
+        print(index)
         return self.dataset[index]
 
     # Update observation

@@ -145,7 +145,6 @@ class ToTensor(object):
     """Convert numpy images in sample to Tensors."""
 
     def __call__(self, sample):
-        print(sample)
         img, label = sample['image'], sample['label']
 
         return {'image': torch.from_numpy(img),

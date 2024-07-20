@@ -1,5 +1,5 @@
 import io
-import os
+import tqdm
 from neural_nets.models.unet import UNet3
 from skimage.morphology import convex_hull_image
 import torch
@@ -60,11 +60,11 @@ class RecNet():
             metric = torch.logical_and(rec, lab).float().sum() * 100 / n
         return loss.item(), metric.item(), reconstruction[0].cpu().detach().numpy()
     
-    def infer_dataset(self, dataset):
-        loader = DataLoader(dataset, batch_size=4, shuffle=False, num_workers=2)
+    def infer_dataset(self, dataset, batch_size=32):
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
         total_loss = 0.0
         steps = 0
-        for batch in loader:
+        for batch in tqdm.tqdm(loader):
             with torch.no_grad():
                 inputs = batch['image'].to(self.device)
                 labels = batch['label'].to(self.device)
