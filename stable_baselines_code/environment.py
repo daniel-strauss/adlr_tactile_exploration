@@ -11,11 +11,6 @@ from plots_plakat.color_shemes import  main_colorscheme
 from util_functions import from_torch, add_color_dim, two_img_to_one, img_array_to_p_list, convert_for_imshow, \
     add_zero_channel
 
-'''
-TODOs:
-  - implement the stable baseline policies and all of that shit
-  - optional: instead of numpy use torch for better performance 
-'''
 
 
 class ShapeEnv(gym.Env):
@@ -77,8 +72,9 @@ class ShapeEnv(gym.Env):
         self.reward = None
         self.step_i = None
         self.info = None
-        self.rc_points = None  # raycast points, needed for render
+        self.rc_points = []  # raycast points, needed for render
         self.rc_line = None
+
 
     def step(self, action):
 
@@ -95,7 +91,7 @@ class ShapeEnv(gym.Env):
         r2 = self.c_rr[beta]
         c2 = self.c_cc[beta]
 
-        self.rc_points = np.array([[r1, c1], [r2, c2]])
+        self.rc_points.append(np.array([[r1, c1], [r2, c2]]))
 
         # 2. Cast a ray with anti-aliasing to prevent slip-throughs
         rr, cc, value = ski.draw.line_aa(r1, c1, r2, c2)
@@ -146,6 +142,7 @@ class ShapeEnv(gym.Env):
         self.outline_img = self.p_list_to_img_array(sample['outline'].squeeze())
         self.grasp_points = []
         self.grasp_point_img = self.p_list_to_img_array(self.grasp_points)
+        self.rc_points = []
 
         self.losses = []
         self.metrics = []
@@ -158,7 +155,7 @@ class ShapeEnv(gym.Env):
         return self.observation, self.info  # reward, done, info should be included
 
 
-    def render(self, mode='human'):
+    def render(self, mode='human', all_rcs=False):
         if not self.render_initialized:
             plt.ion()
             self.fig, (self.ax_1, self.ax_2) = plt.subplots(1, 2, figsize=(12, 6))
@@ -172,16 +169,27 @@ class ShapeEnv(gym.Env):
 
         if len(self.grasp_points) > 0:
             gpa = np.array(self.grasp_points)
-            self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'o', color="black", label='last grasp point')
-            self.ax_1.scatter(gpa[0:-1, 0], gpa[0:-1, 1], s=10, color=self.colorscheme[2], label= "grasp points")
+            self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'o', color="black", label='last grasp point', zorder=5)
+            self.ax_1.scatter(gpa[0:-1, 0], gpa[0:-1, 1], s=10, color=self.colorscheme[2], label= "grasp points", zorder=5)
 
         # plot circle
         self.ax_1.plot(self.c_rr, self.c_cc, 'o', color=self.colorscheme[3], markersize=1)
 
-        self.ax_1.plot(self.rc_points[0, 0], self.rc_points[0, 1],'o', color=self.colorscheme[2], label='alpha')
-        self.ax_1.plot(self.rc_points[1, 0], self.rc_points[1, 1],'o',
+        self.ax_1.plot(self.rc_points[-1][0, 0], self.rc_points[-1][0, 1],'o',
+                       color=self.colorscheme[2], label='alpha')
+        self.ax_1.plot(self.rc_points[-1][1, 0], self.rc_points[-1][1, 1],'o',
                        color=self.colorscheme[3]*0.5, label='beta')
-        self.ax_1.scatter(self.rc_line[0], self.rc_line[1], s=.5, color=self.colorscheme[3])
+        self.ax_1.scatter(self.rc_line[0], self.rc_line[1], s=.5, color=self.colorscheme[3]*0.8,
+                          label='current ray cast',zorder=3)
+
+        if all_rcs:
+            for i,[alpha, beta] in enumerate(self.rc_points[:-1]):
+                if i == 0:
+                    self.ax_1.plot([alpha[0], beta[0]], [alpha[1], beta[1]], color=self.colorscheme[3], linewidth=1,
+                               zorder=2,label='ray casts')
+                else:
+                    self.ax_1.plot([alpha[0], beta[0]], [alpha[1], beta[1]], color=self.colorscheme[3], linewidth=1,
+                                   zorder=2)
 
         self.ax_1.legend(loc="upper right")
 

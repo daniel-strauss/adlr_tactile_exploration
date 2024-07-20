@@ -26,7 +26,7 @@ env = ShapeEnv(rec_net, train_set, complex_reward, smoke=False)
 observation, info = env.reset()
 
 #  stable baseline model
-#filename = 'rl_models/rl_models/punish_miss_free_rays/obs500k7.zip'
+#filename = 'daniel/daniel/punish_miss_free_rays/obs500k7.zip'
 #model = PPO.load(filename, env)
 model = PPO.load('rl_models/rew500k9', env)
 

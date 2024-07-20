@@ -78,7 +78,7 @@ if not debug_mode:
 
 for i in range(iter):
     model.learn(learn_steps, tb_log_name='rew500k', progress_bar=True, callback=TensorboardCallback())
-    model.save('./rl_models/rew500k' + str(i))
+    model.save('./daniel/rew500k' + str(i))
 
 if not debug_mode:
     mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)

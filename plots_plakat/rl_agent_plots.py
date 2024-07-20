@@ -26,13 +26,15 @@ from stable_baselines_code.example_usage_environment import DummyRecNet # import
 
 
 
+complex_reward_path = 'rl_models/jan/complex_reward/obs500k9.zip'
+complex_reward_diff_path = 'rl_models/jan/complex_reward_diff/rew500k9.zip'
 
 tensorboard_path = "./rl_runs/"
 
 gp_terminate = False # if gp_terminate generate plots until 10 gps ahve been reached
 version = "random_grasp_points"#punich_miss__free_rays" # name of rl model
 #filename to rl agent, if none, random policy will be used
-filename = ''#'rl_models/rl_models/punish_miss_free_rays/obs500k7.zip'
+filename = ''#'daniel/daniel/punish_miss_free_rays/obs500k7.zip'
 
 name = "version:" + version +"__gp_terminate:" + str(gp_terminate)
 
@@ -41,6 +43,8 @@ os.makedirs("plots_plakat/rl_plots/"+name, exist_ok=True)
 
 # use dummy rec net to save ram, for testing
 use_dummy_rec_net = False
+
+num_samples = 15
 
 class CPU_Unpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -59,7 +63,7 @@ rec_net = RecNet(dummy=use_dummy_rec_net)
 
 train_set, eval_set, test_set = load_rl_data(transform=None)
 
-env = ShapeEnv(rec_net, eval_set, complex_reward, smoke=False)
+env = ShapeEnv(rec_net, test_set, complex_reward, smoke=False)
 observation, _ = env.reset(options=options)
 print("SHAPEW, ", observation.shape)
 
@@ -70,14 +74,14 @@ if not filename == "":
 # example run
 iter = 0
 step = 0
-while iter < 15:
+while iter < num_samples:
     if not filename == "":
         action, _states = model.predict(observation, deterministic=False)  # Sample random action
     else:
         action = env.action_space.sample()
     observation, reward, done, truncated, info = env.step(action)
     print(reward)
-    env.render()
+    env.render(all_rcs=True)
     #time.sleep(0.5)
     gps = env.num_pgs()
     if (done and gp_terminate) or (gps==10 and not gp_terminate):
