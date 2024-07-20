@@ -39,7 +39,7 @@ filename = ''#'daniel/daniel/punish_miss_free_rays/obs500k7.zip'
 name = "version:" + version +"__gp_terminate:" + str(gp_terminate)
 
 
-os.makedirs("plots_plakat/rl_plots/"+name, exist_ok=True)
+os.makedirs("plots_plakat/temp/rl_plots/"+name, exist_ok=True)
 
 # use dummy rec net to save ram, for testing
 use_dummy_rec_net = False
@@ -91,7 +91,7 @@ while iter < num_samples:
         observation, _ = env.reset(options=options)
 
 
-    plt.savefig("./plots_plakat/rl_plots/"+name + '/iter_%i_step_%i_gp%i.pdf' %(iter,step,gps))
+    plt.savefig("./plots_plakat/temp/rl_plots/"+name + '/iter_%i_step_%i_gp%i.pdf' %(iter,step,gps))
     step += 1
 
 env.close()
