@@ -21,6 +21,7 @@ def complex_reward(losses, metrics, occurences):
     
     return metrics[-1]
 
+# also referrd to as complex_reward_diff
 def improve_reward(losses, metrics, occurences):
     if 'missed' in occurences:
         return -10
