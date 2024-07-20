@@ -25,7 +25,7 @@ else:
 
 rec_net = RecNet()
 train_set, eval_set, test_set = load_rl_data(transform=None)
-dataset = Subset(test_set, range(2))
+dataset = test_set
 
 env = ShapeEnv(rec_net, dataset, basic_reward)
 
@@ -46,7 +46,7 @@ for name in model_paths:
             metrics[j,i] += reward
     mean = np.mean(metrics, axis=1)
     std = np.std(metrics, axis=1)
-    data[name] = np.concatenate((mean, std), axis=1)
+    data[name] = np.stack((mean, std), axis=1)
 env.close()
 
 name = 'random'
@@ -56,6 +56,7 @@ else:
     options = {}
     n = len(dataset)
     metrics = np.zeros((10, n))
+    print(metrics.shape)
     for i in tqdm.tqdm(range(n), name):
         options['index'] = i
         observation, info = env.reset(options=options)
@@ -65,7 +66,7 @@ else:
             metrics[j,i] += reward
     mean = np.mean(metrics, axis=1)
     std = np.std(metrics, axis=1)
-    data[name] = np.concatenate((mean, std), axis=1)
+    data[name] = np.stack((mean, std), axis=1)
 
 with open(save_path, 'wb') as f:
     pickle.dump(data, f)
