@@ -5,9 +5,6 @@ from stable_baselines3.common.logger import TensorBoardOutputFormat
 
 class TensorboardCallback(BaseCallback):
     """
-
-
-
     A custom callback that derives from ``BaseCallback``.
     This Callback Class adds shit to tensorboard
 
@@ -78,20 +75,15 @@ class TensorboardCallback(BaseCallback):
             # for instance, when using one env (index 0 of locals["infos"]):
             # lap_count = self.locals["infos"][0]["lap_count"]
             # self.tb_formatter.writer.add_scalar("train/lap_count", lap_count, self.num_timesteps)
-
-
-
             reward = np.mean(self.rewards)
             self.rewards = []
             rec_loss = np.mean(self.rec_losses)
             self.rec_losses = []
             metrics = np.mean(self.metrics)
             self.metrics = []
-
             self.tb_formatter.writer.add_scalar('custom/reward', np.mean(reward),  self.num_timesteps)
             self.tb_formatter.writer.add_scalar('custom/rec_loss', np.mean(rec_loss),  self.num_timesteps)
             self.tb_formatter.writer.add_scalar('custom/metrics', np.mean(metrics),  self.num_timesteps)
-
             self.tb_formatter.writer.flush()
 
         return True

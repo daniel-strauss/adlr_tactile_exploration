@@ -11,7 +11,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 from stable_baselines_code.callback import TensorboardCallback
 from stable_baselines_code.environment import ShapeEnv
-from stable_baselines_code.reward_functions import basic_reward, complex_reward
+from stable_baselines_code.reward_functions import basic_reward, complex_reward, improve_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet  # importing dummy net for test purposes
 
 tensorboard_path = "./rl_runs/" + f'RL_{datetime.now().strftime("%Y-%m-%d--%H:%M:%S")}'
@@ -45,10 +45,10 @@ train_set, eval_set, test_set = load_rl_data(transform=None)
 
 smoke = False
 observation_1D = False
-reward = complex_reward
+reward = improve_reward
 
 env = ShapeEnv(rec_net, train_set, reward, smoke=smoke, observation_1D=observation_1D)
-env.reset()
+obs, info = env.reset()
 
 eval_env = ShapeEnv(rec_net, eval_set, reward, smoke=smoke, observation_1D=observation_1D)
 eval_env.reset()
@@ -74,9 +74,8 @@ mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
 print(f'Before Training: {mean_reward} +- {std_reward}')
 
 for i in range(iter):
-    print(iter)
-    model.learn(learn_steps, tb_log_name='obs500k', progress_bar=True, callback=TensorboardCallback())
-    model.save('./rl_models/obs500k' + str(i))
+    model.learn(learn_steps, tb_log_name='rew500k', progress_bar=True, callback=TensorboardCallback())
+    model.save('./rl_models/rew500k' + str(i))
 
 mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
 print(f'After Training: {mean_reward} +- {std_reward}')

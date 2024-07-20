@@ -21,6 +21,17 @@ def complex_reward(losses, metrics, occurences):
     
     return metrics[-1]
 
+def improve_reward(losses, metrics, occurences):
+    if 'missed' in occurences:
+        return -10
+    if 'double' in occurences:
+        return -10
+    
+    if len(metrics) < 2:
+        return metrics[0]
+    else:
+        return metrics[-1] - metrics[-2]
+
 def reward_1(losses, metrics, occurrences):
     alph = -1
     bet = -1
