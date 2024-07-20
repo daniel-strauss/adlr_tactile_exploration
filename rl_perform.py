@@ -1,7 +1,6 @@
-import time
 import os
 import numpy as np
-import pandas as pd
+import pickle
 from stable_baselines3 import A2C, PPO
 from neural_nets.rec_net import RecNet
 from neural_nets.utility_functions import load_rl_data
@@ -13,15 +12,21 @@ from torch.utils.data import Subset
 
 model_names = ['rew500k9', 'obs500k9']
 model_paths = [os.path.join('rl_models/', name) for name in model_names]
+save_path = 'rl_models/statistics.pkl'
+
+if os.path.isfile(save_path):
+    with open(save_path, 'wb') as f:
+        data = pickle.load(f)
+        f.close()
+else:
+    data = {}
 
 rec_net = RecNet()
 train_set, eval_set, test_set = load_rl_data(transform=None)
-dummy = Subset(eval_set, range(5))
+dummy = Subset(eval_set, range(2))
 
 dataset = dummy
 env = ShapeEnv(rec_net, dataset, basic_reward)
-
-data = {}
 
 for name in model_paths:
     model = PPO.load(name, env)
@@ -39,5 +44,6 @@ for name in model_paths:
     data[name] = metrics
 env.close()
 
-print(data)
-print(data['rl_models/rew500k9'])
+with open(save_path, 'wb') as f:
+    pickle.dump(data)
+    f.close()
