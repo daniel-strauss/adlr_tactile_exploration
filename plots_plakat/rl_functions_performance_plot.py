@@ -15,7 +15,7 @@ x = range(1, 11)
 plt.figure(figsize=(10, 6))
 
 for key, value in data.items():
-    plt.plot(x, value, label=key)
+    plt.plot(x, value[:,0], label=key)
 
 plt.title('Example Plot of Different Datasets')
 plt.xlabel('Steps')

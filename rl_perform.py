@@ -11,7 +11,7 @@ from stable_baselines_code.environment import ShapeEnv
 from stable_baselines_code.reward_functions import basic_reward
 from torch.utils.data import Subset
 
-skip = True
+skip = False
 model_names = ['rew500k9', 'obs500k9']
 model_paths = [os.path.join('rl_models/', name) for name in model_names]
 save_path = 'rl_models/statistics.pkl'
@@ -25,7 +25,7 @@ else:
 
 rec_net = RecNet()
 train_set, eval_set, test_set = load_rl_data(transform=None)
-dataset = test_set
+dataset = Subset(test_set, range(2))
 
 env = ShapeEnv(rec_net, dataset, basic_reward)
 
@@ -34,19 +34,38 @@ for name in model_paths:
         print(f'Model {name} already evaluted, skipping.')
         continue
     model = PPO.load(name, env)
-    metrics = np.zeros(10)
     options = {}
     n = len(dataset)
+    metrics = np.zeros((10, n))
     for i in tqdm.tqdm(range(n), name):
         options['index'] = i
         observation, info = env.reset(options=options)
         for j in range(10):
             action, _states = model.predict(observation, deterministic=False)  # Sample random action
             observation, reward, done, truncated, info = env.step(action)
-            metrics[j] += reward
-    metrics /= n
-    data[name] = metrics
+            metrics[j,i] += reward
+    mean = np.mean(metrics, axis=1)
+    std = np.std(metrics, axis=1)
+    data[name] = np.concatenate((mean, std), axis=1)
 env.close()
+
+name = 'random'
+if skip and name in data:
+    print(f'Model {name} already evaluted, skipping.')
+else:
+    options = {}
+    n = len(dataset)
+    metrics = np.zeros((10, n))
+    for i in tqdm.tqdm(range(n), name):
+        options['index'] = i
+        observation, info = env.reset(options=options)
+        for j in range(10):
+            action = env.action_space.sample()  # Sample random action
+            observation, reward, done, truncated, info = env.step(action)
+            metrics[j,i] += reward
+    mean = np.mean(metrics, axis=1)
+    std = np.std(metrics, axis=1)
+    data[name] = np.concatenate((mean, std), axis=1)
 
 with open(save_path, 'wb') as f:
     pickle.dump(data, f)
