@@ -211,7 +211,6 @@ class ShapeEnv(gym.Env):
             index = options['index']
         else:
             index = np.random.randint(0, len(self.dataset))
-        print(index)
         return self.dataset[index]
 
 
