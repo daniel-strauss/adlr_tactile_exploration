@@ -46,7 +46,7 @@ def load_rl_data(dir='./datasets/2D_shapes', transform=ToTensor()):
     eval_path = os.path.join(dir, 'eval.csv')
     train_path = os.path.join(dir, 'train.csv')
 
-    test_set = ReinforcementDataset(test_path, dir, ToTensor())
+    test_set = ReinforcementDataset(test_path, dir, transform)
     eval_set = ReinforcementDataset(eval_path, dir, transform)
     train_set = ReinforcementDataset(train_path, dir, transform)
 
