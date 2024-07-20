@@ -119,8 +119,6 @@ def train_reconstruction(config, train_set: Dataset, eval_set: Dataset):
         # Validation loss
         val_loss = 0.0
         val_steps = 0
-        total = 0
-        correct = 0
         for i, batch in enumerate(valloader, 0):
             with torch.no_grad():
                 inputs = batch['image'].to(device)

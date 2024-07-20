@@ -8,9 +8,6 @@ from util_functions import add_zero_channel, convert_for_imshow, from_torch
 
 class TensorboardCallback(BaseCallback):
     """
-
-
-
     A custom callback that derives from ``BaseCallback``.
     This Callback Class adds shit to tensorboard
 
@@ -94,6 +91,11 @@ class TensorboardCallback(BaseCallback):
             self.ready_for_log = False
 
             # log reconstruction
+            # You can have access to info from the env using self.locals.
+            # for instance, when using one env (index 0 of locals["infos"]):
+            # lap_count = self.locals["infos"][0]["lap_count"]
+            # self.tb_formatter.writer.add_scalar("train/lap_count", lap_count, self.num_timesteps)
+
             reward = np.mean(self.rewards)
             self.rewards = []
             rec_loss = np.mean(self.rec_losses)
@@ -101,9 +103,11 @@ class TensorboardCallback(BaseCallback):
             metrics = np.mean(self.metrics)
             self.metrics = []
 
-            self.tb_formatter.writer.add_scalar('custom/reward', np.mean(reward), self.num_timesteps)
-            self.tb_formatter.writer.add_scalar('custom/rec_loss', np.mean(rec_loss), self.num_timesteps)
-            self.tb_formatter.writer.add_scalar('custom/metrics', np.mean(metrics), self.num_timesteps)
+
+            self.tb_formatter.writer.add_scalar('custom/reward', np.mean(reward),  self.num_timesteps)
+            self.tb_formatter.writer.add_scalar('custom/rec_loss', np.mean(rec_loss),  self.num_timesteps)
+            self.tb_formatter.writer.add_scalar('custom/metrics', np.mean(metrics),  self.num_timesteps)
+
             self.tb_formatter.writer.flush()
 
             # log images

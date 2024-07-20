@@ -4,7 +4,6 @@ from gymnasium import spaces
 import numpy as np
 import skimage as ski
 from matplotlib import pyplot as plt
-from scipy.signal import convolve2d
 from torch import from_numpy
 import torch
 
@@ -27,6 +26,7 @@ class ShapeEnv(gym.Env):
 
     max_steps = 10
 
+
     colorscheme = \
         {"background": np.array([1,1,1]),
          0: np.array([0.98823529, 0.63921569, 0.06666667]), # primary image chanel
@@ -36,7 +36,8 @@ class ShapeEnv(gym.Env):
          4: np.array([0.05490196, 0.41960784, 0.65882353])}
 
 
-    def __init__(self, rec_net, dataset, loss_func, reward_func, observation_1D=False, cuda=True, smoke=False):
+    def __init__(self, rec_net, dataset, reward_func, observation_1D=False, smoke=False):
+
         super(ShapeEnv, self).__init__()
 
         mid = int(self.res / 2)
@@ -55,16 +56,8 @@ class ShapeEnv(gym.Env):
             self.observation_space = spaces.Box(low=0, high=255, shape=(2, self.res, self.res), dtype=np.uint8)
 
         self.rec_net = rec_net  # reconstruction network
-        if not cuda:
-            self.device = torch.device('cpu')
-        else:
-            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.rec_net.to(self.device)
-        self.rec_net.eval()
-
         self.smoke = smoke
         self.dataset = dataset
-        self.loss_func = loss_func  # loss function to evaluate reconstruction
         self.reward_func = reward_func  # reward_functions.py contains different reward functions for rl
 
         # Matplotlib figures for rendering
@@ -125,7 +118,7 @@ class ShapeEnv(gym.Env):
             self.grasp_point_img[0, r_g, c_g] = 1
 
         # 4. Infer reconstruction with new grasp point.
-        loss, metric, self.reconstruction_img = self.infer_reconstruction()
+        loss, metric, self.reconstruction_img = self.rec_net.infer(self.grasp_point_img, self.label)
         self.losses.append(loss)
         self.metrics.append(metric)
 
@@ -152,7 +145,7 @@ class ShapeEnv(gym.Env):
         self.truncated = False
         self.info = {}
 
-        sample = self.new_sample()
+        sample = self.new_sample(options)
 
         self.label = sample['label']
         self.outline_img = self.p_list_to_img_array(sample['outline'].squeeze())
@@ -174,7 +167,6 @@ class ShapeEnv(gym.Env):
         if not self.render_initialized:
             plt.ion()
             self.fig, (self.ax_1, self.ax_2) = plt.subplots(1, 2, figsize=(12, 6))
-            self.render_initialized = False
             plt.show()
             self.render_initialized = True
 
@@ -214,11 +206,14 @@ class ShapeEnv(gym.Env):
 
     ############################# Helpfull Functions ############################
 
-    def new_sample(self):
-        index = np.random.randint(0, len(self.dataset))
-        if self.smoke:
-            index = 9
+    def new_sample(self, options):
+        if options is not None and 'index' in options:
+            index = options['index']
+        else:
+            index = np.random.randint(0, len(self.dataset))
+        print(index)
         return self.dataset[index]
+
 
     # runs grasp points through reconstruction network and return loss and reconstruction
     def infer_reconstruction(self):
@@ -233,6 +228,7 @@ class ShapeEnv(gym.Env):
         metric = torch.logical_and(rec, lab).float().sum() * 100 / n
 
         return loss.item(), metric.item(), from_torch(reconstruction)
+
 
     # Update observation
     def pack_observation(self):
@@ -250,7 +246,6 @@ class ShapeEnv(gym.Env):
         if len(p_list) > 0:
             a[0, p_list[:, 0], p_list[:, 1]] = 1
         return a
-
 
 
     def to_torch(self, a):
