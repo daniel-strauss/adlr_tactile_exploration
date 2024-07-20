@@ -1,7 +1,11 @@
+
+
+import os
 import time
 from datetime import datetime
 
 import torch
+from matplotlib import pyplot as plt
 from stable_baselines3 import A2C, PPO
 from torch import nn
 import numpy as np
@@ -20,11 +24,22 @@ from stable_baselines_code.reward_functions import basic_reward, complex_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet # importing dummy net for test purposes
 
 
+
+
 tensorboard_path = "./rl_runs/"
 
+gp_terminate = False # if gp_terminate generate plots until 10 gps ahve been reached
+version = "punich_miss__free_rays" # name of rl model
+#filename to rl agent, if none, random policy will be used
+filename = 'rl_models/rl_models/punish_miss_free_rays/obs500k7.zip'
+
+name = "version:" + version +"__gp_terminate:" + str(gp_terminate)
+
+
+os.makedirs("plots_plakat/rl_plots/"+name, exist_ok=True)
 
 # use dummy rec net to save ram, for testing
-use_dummy_rec_net = False
+use_dummy_rec_net = True
 show_example_run = False
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -55,21 +70,30 @@ else:
 
 train_set, eval_set, test_set = load_rl_data(transform=None)
 
-env = ShapeEnv(rec_net, train_set, nn.BCELoss(), complex_reward, smoke=False)
+env = ShapeEnv(rec_net, eval_set, nn.BCELoss(), complex_reward, smoke=False)
 observation, _ = env.reset()
 
 # example satble baseline model
-filename = 'rl_models/rl_models/punish_miss_free_rays/obs500k7.zip'
-model = PPO.load(filename, env)
+if not filename is None:
+    model = PPO.load(filename, env)
 
 # example run
-
+iter = 0
+step = 0
 while True:
-    action, _states = model.predict(observation, deterministic=False)  # Sample random action
+    if not filename is None:
+        action, _states = model.predict(observation, deterministic=False)  # Sample random action
+    else:
+        action = env.action_space.sample()
     observation, reward, done, truncated, info = env.step(action)
     print(reward)
     env.render()
     time.sleep(0.5)
     if done:
         observation, _ = env.reset()
+        step = 0
+
+    plt.savefig("./plots_plakat/rl_plots/"+name + '/iter_%i_step_%i_gp%i.pdf' %(iter,step,2))
+    step += 1
+    iter += 1
 env.close()

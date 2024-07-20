@@ -8,6 +8,10 @@ from scipy.signal import convolve2d
 from torch import from_numpy
 import torch
 
+
+from util_functions import from_torch, add_color_dim, two_img_to_one, img_array_to_p_list, convert_for_imshow, \
+    add_zero_channel
+
 '''
 TODOs:
   - implement the stable baseline policies and all of that shit
@@ -22,6 +26,15 @@ class ShapeEnv(gym.Env):
     res = 256  #todo, automate res extraction from data?
 
     max_steps = 10
+
+    colorscheme = \
+        {"background": np.array([1,1,1]),
+         0: np.array([0.98823529, 0.63921569, 0.06666667]), # primary image chanel
+         1: np.array([0.87058824, 0.30196078, 0.5254902 ]), #secondary image channel
+         2: np.array([0.392,0.066,0.247]), # tertiary image channel
+         3: np.array([0.83137255, 0.8627451 , 1.        ]),
+         4: np.array([0.05490196, 0.41960784, 0.65882353])}
+
 
     def __init__(self, rec_net, dataset, loss_func, reward_func, observation_1D=False, cuda=True, smoke=False):
         super(ShapeEnv, self).__init__()
@@ -59,6 +72,8 @@ class ShapeEnv(gym.Env):
         self.render_initialized = False  # call plt.show on_render, to not have the shitty plt window al the time
 
 
+        self.total_steps = 0
+
         ######### on run variables #################
         self.terminated = None
         self.truncated = None
@@ -81,6 +96,7 @@ class ShapeEnv(gym.Env):
 
         occurrences = []
         self.step_i += 1
+        self.total_steps += 1
 
         # 1. Get start and end point of ray
         alpha = action[0]
@@ -124,6 +140,7 @@ class ShapeEnv(gym.Env):
 
         self.info["losses"] = self.losses
         self.info["metrics"] = self.metrics
+        self.info["reconstruction"] = self.reconstruction_img
 
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
@@ -162,28 +179,31 @@ class ShapeEnv(gym.Env):
             self.render_initialized = True
 
         self.ax_1.clear()
-        self.ax_1.imshow(self.convert_for_imshow(
-            self.add_zero_channel(
-                self.two_img_to_one(self.outline_img, self.reconstruction_img > 0.5))))
+        self.ax_1.imshow(convert_for_imshow(
+            add_zero_channel(
+                two_img_to_one(self.outline_img, self.reconstruction_img > 0.5)), cs = self.colorscheme))
 
         if len(self.grasp_points) > 0:
             gpa = np.array(self.grasp_points)
-            self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'ro', label='Last Grasp Point')
-            self.ax_1.scatter(gpa[0:-1, 0], gpa[0:-1, 1], s=10, c='orange')
+            self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'o', color="black", label='last grasp point')
+            self.ax_1.scatter(gpa[0:-1, 0], gpa[0:-1, 1], s=10, color=self.colorscheme[2], label= "grasp points")
 
-        self.ax_1.plot(self.c_rr, self.c_cc, 'b.', markersize=1)
+        # plot circle
+        self.ax_1.plot(self.c_rr, self.c_cc, 'o', color=self.colorscheme[3], markersize=1)
 
-        self.ax_1.plot(self.rc_points[0, 0], self.rc_points[0, 1], 'go', label='Alpha')
-        self.ax_1.plot(self.rc_points[1, 0], self.rc_points[1, 1], 'bo', label='Beta')
-        self.ax_1.scatter(self.rc_line[0], self.rc_line[1], s=.5, c='r')
+        self.ax_1.plot(self.rc_points[0, 0], self.rc_points[0, 1],'o', color=self.colorscheme[2], label='alpha')
+        self.ax_1.plot(self.rc_points[1, 0], self.rc_points[1, 1],'o',
+                       color=self.colorscheme[3]*0.5, label='beta')
+        self.ax_1.scatter(self.rc_line[0], self.rc_line[1], s=.5, color=self.colorscheme[3])
 
-        self.ax_1.legend()
+        self.ax_1.legend(loc="upper right")
 
         self.ax_2.clear()
         if self.observation_1D:
-            self.ax_2.imshow(self.convert_for_imshow(self.observation))
+            self.ax_2.imshow(convert_for_imshow(self.observation, cs = self.colorscheme))
         else:
-            self.ax_2.imshow(self.convert_for_imshow(self.add_zero_channel(self.observation)))
+            self.ax_2.imshow(convert_for_imshow(add_zero_channel(self.observation), cs = self.colorscheme, bin=False))
+            #self.ax_2.set_facecolor("w")
         self.fig.canvas.draw()
         plt.pause(.1)
 
@@ -212,14 +232,14 @@ class ShapeEnv(gym.Env):
         n = torch.logical_or(rec, lab).float().sum()
         metric = torch.logical_and(rec, lab).float().sum() * 100 / n
 
-        return loss.item(), metric.item(), self.from_torch(reconstruction)
+        return loss.item(), metric.item(), from_torch(reconstruction)
 
     # Update observation
     def pack_observation(self):
         if self.observation_1D:
             img = self.reconstruction_img * 255
         else:
-            img = self.two_img_to_one(self.grasp_point_img, self.reconstruction_img) * 255
+            img = two_img_to_one(self.grasp_point_img, self.reconstruction_img) * 255
         return img.astype(np.uint8)
 
     # converts a list of points to image array, where each point has value one
@@ -231,44 +251,15 @@ class ShapeEnv(gym.Env):
             a[0, p_list[:, 0], p_list[:, 1]] = 1
         return a
 
-    def add_zero_channel(self, a):
-        zeros = self.add_color_dim(np.zeros(a.shape[1:], dtype=a.dtype))
-        return self.two_img_to_one(a, zeros)
 
-    # converts imgarray to list of points
-    @staticmethod
-    def img_array_to_p_list(a):
-        return np.argwhere(a > 0)
 
     def to_torch(self, a):
         if len(a.shape) == 2:
-            b = self.add_color_dim(a)
+            b = add_color_dim(a)
         else:
             b = a.copy()
         return from_numpy(b.reshape(np.concatenate(([1], b.shape)))).to(self.device)
 
-    @staticmethod
-    def from_torch(a):
-        return a[0].cpu().detach().numpy()
+    def num_pgs(self):
+        return len(self.grasp_points)
 
-    # converts a n,m array to a n,m,1 array
-    @staticmethod
-    def add_color_dim(a):
-        return a.reshape((1, a.shape[0], a.shape[1]))
-
-    # converts array of shape n,m,c to shape c,n,m
-    @staticmethod
-    def convert_for_imshow(a):
-        if a.dtype == np.int8:
-            return a.transpose(2, 1, 0).astype(np.int32)
-        else:
-            return a.transpose(2, 1, 0)
-
-    @staticmethod
-    def two_img_to_one(a, b):
-        if a.shape[1:-1] != b.shape[1:-1]:
-            print("WRONG SHAPES:")
-            print(a.shape)
-            print(b.shape)
-            raise ValueError("images are not compatible, need same amount of rows and cols")
-        return np.concatenate((a, b), axis=0)
