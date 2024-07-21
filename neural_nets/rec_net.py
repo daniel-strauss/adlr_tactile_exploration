@@ -1,4 +1,6 @@
 import io
+import warnings
+
 import tqdm
 from neural_nets.models.unet import UNet3
 from skimage.morphology import convex_hull_image
@@ -44,6 +46,8 @@ class RecNet():
             self.device = torch.device('cpu')
         else:
             self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            if self.device == "cpu":
+                warnings.warn("RecNet running on cpu, even though cuda was specified.")
         self.rec_net.to(self.device)
         self.rec_net.eval()
 
