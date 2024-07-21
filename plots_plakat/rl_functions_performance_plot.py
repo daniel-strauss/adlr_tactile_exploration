@@ -5,7 +5,7 @@ import time
 
 from color_shemes import main_colorscheme
 
-data_path = 'plots_plakat/plot_data/rl_policies_statistics_gp.pkl'
+data_path = 'plots_plakat/plot_data/rl_policies_statistics.pkl'
 
 name_mask = {
     'rl_models/rew500k9': 'Diff',
@@ -39,8 +39,8 @@ plt.ylim((0, 100))
 plt.xlim((1, 10))
 plt.xlabel('Steps')
 plt.ylabel('Accuracy')
-
 plt.legend()
+plt.tight_layout()
 
-plt.savefig('plots_plakat/temp/performance_plot_gp.png')
+plt.savefig('plots_plakat/temp/performance_plot.png', dpi=300)
 plt.show()
