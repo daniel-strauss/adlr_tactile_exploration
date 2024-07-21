@@ -3,17 +3,17 @@ import pickle
 import os
 import time
 
-from plots_plakat.color_shemes import main_colorscheme
+from color_shemes import main_colorscheme
 
 data_path = 'plots_plakat/plot_data/rl_policies_statistics.pkl'
 
 name_mask = {
     'rl_models/rew500k9': 'Diff',
-    'rl_models/obs500k9': 'Total',
-    'random': 'Random',
-    'rl_models/allow_miss_free_ray': 'Allow_miss',
-    'rl_models/complex_after_free': 'Total_after_free',
-    'rl_models/diff_after_free': 'Diff_after_free'
+    'rl_models/obs500k9': 'Abs',
+    'random': 'Rand',
+    'rl_models/allow_miss_free_ray': 'Miss',
+    'rl_models/complex_after_free': 'AbsMiss',
+    'rl_models/diff_after_free': 'DiffMiss'
 }
 
 with open(data_path, 'rb') as f:
@@ -30,12 +30,14 @@ for i, [key, value] in enumerate(data.items()):
 
     upper = mean + std
     lower = mean - std
-    c = main_colorscheme[i]
-    p = plt.plot(x, mean, label=key, color=c)
+    # c = main_colorscheme[i]
+    p = plt.plot(x, mean, label=name_mask[key])#, color=c)
     #plt.fill_between(x, upper, lower, color=c, alpha=0.3)
 
 
-plt.title('Reward functions')
+plt.ylim((0, 100))
+plt.xlim((1, 10))
+plt.title('Policies')
 plt.xlabel('Steps')
 plt.ylabel('Accuracy')
 
