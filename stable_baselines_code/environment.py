@@ -126,6 +126,7 @@ class ShapeEnv(gym.Env):
         self.info["metrics"] = self.metrics
         self.info["reconstruction"] = self.reconstruction_img
         self.info['missed'] = 'missed' in occurrences
+        self.info['double'] = 'double' in occurrences
 
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 

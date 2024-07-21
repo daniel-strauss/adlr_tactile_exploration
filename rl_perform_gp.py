@@ -44,7 +44,7 @@ else:
         while env.num_pgs() < 10:
             action = env.action_space.sample()  # Sample random action
             observation, reward, done, truncated, info = env.step(action)
-            if not info['missed']:
+            if not info['missed'] and not info['double']:
                 metrics[env.num_pgs()-1, i] += reward
 
     mean = np.mean(metrics, axis=1)
@@ -66,7 +66,7 @@ for name in model_paths:
         while env.num_pgs() < 10:
             action, _states = model.predict(observation, deterministic=False)  # Sample random action
             observation, reward, done, truncated, info = env.step(action)
-            if not info['missed']:
+            if not info['missed'] and not info['double']:
                 metrics[env.num_pgs()-1,i] += reward
     
     mean = np.mean(metrics, axis=1)

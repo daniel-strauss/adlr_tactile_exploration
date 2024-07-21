@@ -5,7 +5,7 @@ import time
 
 from color_shemes import main_colorscheme
 
-data_path = 'plots_plakat/plot_data/rl_policies_statistics.pkl'
+data_path = 'plots_plakat/plot_data/rl_policies_statistics_gp.pkl'
 
 name_mask = {
     'rl_models/rew500k9': 'Diff',
@@ -24,7 +24,7 @@ x = range(1, 11)
 plt.figure(figsize=(12, 6))
 
 for i, [key, value] in enumerate(data.items()):
-    print(f'{key}: {value[-1,0]}')
+    print(f'{key}: {value[-2,0]}')
     mean = value[:,0]
     std = value[:,1]
 
