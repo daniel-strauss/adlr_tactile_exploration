@@ -5,7 +5,7 @@ import torch
 import pandas as pd
 from skimage import io, transform
 import numpy as np
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import psutil
@@ -20,8 +20,7 @@ Helper functions for displaying data
 
 def show_datapair(image, label):
     """Show tactile points with object shape"""
-    fig, axs = plt.subplots(1, 2, sharey=True)
-    fig.subplots_adjust(wspace=0)
+    fig, axs = plt.subplots(1, 2, fig_size=(12, 6))
     axs[0].imshow(image[0])
     axs[0].set_axis_off()
     axs[1].imshow(label[0])
@@ -30,8 +29,7 @@ def show_datapair(image, label):
 
 def show_datatripple(input, label, output):
     """Show tactile points with object shape"""
-    fig, axs = plt.subplots(1, 3, sharey=True)
-    fig.subplots_adjust(wspace=0)
+    fig, axs = plt.subplots(1, 3, fig_size=(18, 6))
     axs[0].imshow(input[0])
     axs[0].set_axis_off()
     axs[1].imshow(label[0])
@@ -91,16 +89,15 @@ class ReconstructionDataset(Dataset):
 
         img = np.load(img_name).astype('f')
         label = np.load(label_name).astype('f')
-        sample = {'image': img, 'label': label}
+        outline = np.load(os.path.join(os.path.dirname(label_name), 'outline.npy'))
+        sample = {'image': img, 'label': label, 'outline': outline}
 
         if self.transform:
             sample = self.transform(sample)
 
         return sample
-
-class MemoryReconstructionDataset(Dataset):
-    """Reconstruction dataset."""
-
+    
+class ReinforcementDataset(Dataset):
     def __init__(self, csv_file, root_dir, transform=None):
         """
         Arguments:
@@ -109,43 +106,27 @@ class MemoryReconstructionDataset(Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
+        annotation_frame = pd.read_csv(csv_file)
+        self.labels = annotation_frame.iloc[:,1].drop_duplicates()
+        self.root_dir = root_dir
         self.transform = transform
-        self.images, self.labels = self.create_memory_dataset(csv_file, root_dir)
 
-    def create_memory_dataset(self, csv_file, root_dir):
-        
-        df = pd.read_csv(csv_file)
-        img_paths = df.iloc[:, 0].to_list()
-        label_paths = df.iloc[:, 1].to_list()
-
-        imgs = []
-        labels = []
-
-        str = ''
-        label = None
-        for i in tqdm(range(len(img_paths)), 'Data to memory'):
-            if(str != label_paths[i]):
-                str = label_paths[i]
-                label_path = os.path.join(root_dir, str)
-                label = np.load(label_path)
-            img_path = os.path.join(root_dir, img_paths[i])
-
-            if i % 50000 == 0:
-                memory_usage = psutil.virtual_memory()
-                print(f"Memory Usage: {memory_usage.percent}%")
-                
-            img = np.load(img_path)
-            imgs.append(img)
-            labels.append(label)
-        
-        return imgs, labels
-            
     def __len__(self):
-        return len(self.images)
+        return len(self.labels)
 
     def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
 
-        sample = {'image': self.images[idx], 'label': self.labels[idx]}
+        label_path = os.path.join(self.root_dir,
+                                  self.labels.iloc[idx])
+        
+        outline_path = os.path.join(os.path.dirname(label_path), 'outline.npy')
+
+        label = np.load(label_path).astype('f')
+        outline = np.load(outline_path)
+        sample = {'label': label, 'outline': outline}
+
         if self.transform:
             sample = self.transform(sample)
 

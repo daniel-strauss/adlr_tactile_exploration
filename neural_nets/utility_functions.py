@@ -13,38 +13,47 @@ import ray.cloudpickle as pickle
 from pathlib import Path
 
 standard_config: dict = {
-        'batch_size': 256,
-        'epochs': 10,
-        'train_prob': 0.8,
-        'num_workers': 8,
-        'smoke': False,
-        
-        'lr': 1e-5,
-        'weight_decay': 0,
-        'optimizer': optim.Adam,
-        'loss_func': nn.BCELoss(),
+    'batch_size': 256,
+    'epochs': 10,
+    'num_workers': 8,
+    'smoke': False,
 
-        'model': UNet3,
-        'depth': 5,
-        'channels': 64
-    }
+    'lr': 1e-5,
+    'weight_decay': 0,
+    'optimizer': optim.Adam,
+    'loss_func': nn.BCELoss(),
 
-def load_data(dir='./datasets/2D_shapes'):
-    transform = transforms.Compose([
-        ToTensor()
-    ])
+    'model': UNet3,
+    'depth': 5,
+    'channels': 64
+}
 
+
+def load_data(dir='./datasets/2D_shapes', transform=ToTensor()):
     test_path = os.path.join(dir, 'test.csv')
-    train_path = os.path.join(dir, 'annotations.csv')
-    
+    eval_path = os.path.join(dir, 'eval.csv')
+    train_path = os.path.join(dir, 'train.csv')
+
     test_set = ReconstructionDataset(test_path, dir, ToTensor())
+    eval_set = ReconstructionDataset(eval_path, dir, transform)
     train_set = ReconstructionDataset(train_path, dir, transform)
 
-    return train_set, test_set
+    return train_set, eval_set, test_set
 
 
-def train_reconstruction(config, dataset:Dataset):
+def load_rl_data(dir='./datasets/2D_shapes', transform=ToTensor()):
+    test_path = os.path.join(dir, 'test.csv')
+    eval_path = os.path.join(dir, 'eval.csv')
+    train_path = os.path.join(dir, 'train.csv')
 
+    test_set = ReinforcementDataset(test_path, dir, transform)
+    eval_set = ReinforcementDataset(eval_path, dir, transform)
+    train_set = ReinforcementDataset(train_path, dir, transform)
+
+    return train_set, eval_set, test_set
+
+
+def train_reconstruction(config, train_set: Dataset, eval_set: Dataset):
     model = config['model'](config)
     device = 'cpu'
     if torch.cuda.is_available():
@@ -69,19 +78,15 @@ def train_reconstruction(config, dataset:Dataset):
         start_epoch = 0
 
     if config['smoke']:
-        dataset = Subset(dataset, range(min(500, len(dataset))))
+        train_set = Subset(train_set, range(min(500, len(train_set))))
+        eval_set = Subset(eval_set, range(min(100, len(train_set))))
 
-    train_size = int(len(dataset) * config['train_prob'])
     torch.manual_seed(0)
-    train_subset, val_subset = random_split(
-        dataset, [train_size, len(dataset) - train_size]
-    )
-
     trainloader = DataLoader(
-        train_subset, batch_size=config['batch_size'], shuffle=True, num_workers=config['num_workers']
+        train_set, batch_size=config['batch_size'], shuffle=True, num_workers=config['num_workers']
     )
     valloader = DataLoader(
-        val_subset, batch_size=config['batch_size'], shuffle=True, num_workers=config['num_workers']
+        eval_set, batch_size=config['batch_size'], shuffle=True, num_workers=config['num_workers']
     )
 
     for epoch in range(start_epoch, config['epochs']):  # loop over the dataset multiple times
@@ -114,8 +119,6 @@ def train_reconstruction(config, dataset:Dataset):
         # Validation loss
         val_loss = 0.0
         val_steps = 0
-        total = 0
-        correct = 0
         for i, batch in enumerate(valloader, 0):
             with torch.no_grad():
                 inputs = batch['image'].to(device)
