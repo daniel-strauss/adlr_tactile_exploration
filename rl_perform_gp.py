@@ -11,7 +11,7 @@ from stable_baselines_code.environment import ShapeEnv
 from stable_baselines_code.reward_functions import basic_reward
 from torch.utils.data import Subset
 
-skip = True
+skip = False
 model_names = ['rew500k9', 'obs500k9', 'complex_after_free', 'diff_after_free']
 model_paths = [os.path.join('rl_models/', name) for name in model_names]
 save_path = 'plots_plakat/plot_data/rl_policies_statistics_gp.pkl'

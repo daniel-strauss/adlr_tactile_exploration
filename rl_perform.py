@@ -14,7 +14,7 @@ from torch.utils.data import Subset
 skip = True
 model_names = ['rew500k9', 'obs500k9', 'complex_after_free', 'diff_after_free']
 model_paths = [os.path.join('rl_models/', name) for name in model_names]
-save_path = 'plots_plakat/plot_data/rl_policies_statistics.pkl'
+save_path = 'plots_plakat/plot_data/rl_policies_statistics_det.pkl'
 
 if os.path.isfile(save_path):
     with open(save_path, 'rb') as f:
@@ -41,7 +41,7 @@ for name in model_paths:
         options['index'] = i
         observation, info = env.reset(options=options)
         for j in range(10):
-            action, _states = model.predict(observation, deterministic=False)  # Sample random action
+            action, _states = model.predict(observation, deterministic=True)  # Sample random action
             observation, reward, done, truncated, info = env.step(action)
             metrics[j,i] += reward
     mean = np.mean(metrics, axis=1)
