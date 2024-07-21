@@ -64,9 +64,10 @@ class RecNet():
             metric = torch.logical_and(rec, lab).float().sum() * 100 / n
         return loss.item(), metric.item(), reconstruction[0].cpu().detach().numpy()
     
-    def infer_dataset(self, dataset, batch_size=32):
+    def infer_dataset(self, dataset, batch_size=16):
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
         total_loss = 0.0
+        total_metric = 0.0
         steps = 0
         for batch in tqdm.tqdm(loader):
             with torch.no_grad():
