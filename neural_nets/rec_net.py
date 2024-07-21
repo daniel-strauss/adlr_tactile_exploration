@@ -72,12 +72,17 @@ class RecNet():
             with torch.no_grad():
                 inputs = batch['image'].to(self.device)
                 labels = batch['label'].to(self.device)
-
                 outputs = self.rec_net(inputs)
                 loss = self.loss_func(outputs, labels)
                 total_loss += loss.cpu().numpy()
                 steps += 1
-        return total_loss / steps
+
+                rec = (outputs >= 0.5)
+                lab = (labels > 0)
+                n = torch.logical_or(rec, lab).float().sum()
+                total_metric += torch.logical_and(rec, lab).float().sum() * 100 / n
+
+        return total_loss / steps, total_metric / steps
         
 class DummyRecNet(torch.nn.Module):
     def forward(self, x):

@@ -25,7 +25,6 @@ else:
     data = {}
 
 
-
 rec_net = RecNet(dummy=False)
 
 train_set, eval_set, test_set = load_rl_data(transform=None)

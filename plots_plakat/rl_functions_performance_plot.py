@@ -32,5 +32,5 @@ plt.ylabel('Accuracy')
 
 plt.legend()
 
-plt.savefig('plots_plakat/temp/performance_plot.png')
+plt.savefig('plots_plakat/temp/performance_plot.png', dpi=300)
 plt.show()
