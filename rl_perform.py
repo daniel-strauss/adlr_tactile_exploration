@@ -12,7 +12,7 @@ from stable_baselines_code.reward_functions import basic_reward
 from torch.utils.data import Subset
 
 skip = True
-model_names = ['rew500k9', 'obs500k9', 'complex_after_free', 'diff_after_free']
+model_names = ['rew500k9', 'obs500k9', 'complex_after_free', 'diff_after_free', 'rew500k7']
 model_paths = [os.path.join('rl_models/', name) for name in model_names]
 save_path = 'plots_plakat/plot_data/rl_policies_statistics_det.pkl'
 
