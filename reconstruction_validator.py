@@ -8,11 +8,11 @@ def main():
     smoke_set = Subset(eval_set, range(12))
     rec_net = RecNet()
 
-    train_loss = rec_net.infer_dataset(train_set)
-    val_loss = rec_net.infer_dataset(eval_set)
-    test_loss = rec_net.infer_dataset(test_set)
+    train_loss, train_acc = rec_net.infer_dataset(train_set)
+    val_loss, val_acc = rec_net.infer_dataset(eval_set)
+    test_loss, test_acc = rec_net.infer_dataset(test_set)
 
-    print(f'Train loss: {train_loss}\nValidation loss: {val_loss}\nTest loss: {test_loss}')
+    print(f'Train loss: {train_loss}, accuracy: {train_acc}\nValidation loss: {val_loss}, accuracy: {val_acc}\nTest loss: {test_loss}, accuracy: {test_acc}')
 
 if __name__ == '__main__':
     main()
