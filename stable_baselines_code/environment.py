@@ -135,7 +135,6 @@ class ShapeEnv(gym.Env):
         self.terminated = False
         self.truncated = False
         self.info = {}
-
         sample = self.new_sample(options)
 
         self.label = sample['label']
@@ -210,7 +209,7 @@ class ShapeEnv(gym.Env):
     ############################# Helpfull Functions ############################
 
     def new_sample(self, options):
-        if options is not None and 'index' in options:
+        if not options is None and 'index' in options:
             index = options['index']
         else:
             index = np.random.randint(0, len(self.dataset))

@@ -25,6 +25,7 @@ from stable_baselines_code.reward_functions import basic_reward, complex_reward
 from stable_baselines_code.example_usage_environment import DummyRecNet # importing dummy net for test purposes
 
 
+complex_reward_after_free_rays_path = 'rl_models/daniel/punish_miss_free_rays/obs500k9.zip'
 
 complex_reward_path = 'rl_models/jan/complex_reward/obs500k9.zip'
 complex_reward_diff_path = 'rl_models/jan/complex_reward_diff/rew500k9.zip'
@@ -32,9 +33,9 @@ complex_reward_diff_path = 'rl_models/jan/complex_reward_diff/rew500k9.zip'
 tensorboard_path = "./rl_runs/"
 
 gp_terminate = False # if gp_terminate generate plots until 10 gps ahve been reached
-version = "random_grasp_points"#punich_miss__free_rays" # name of rl model
 #filename to rl agent, if none, random policy will be used
-filename = ''#'daniel/daniel/punish_miss_free_rays/obs500k7.zip'
+filename = complex_reward_diff_path#'daniel/daniel/punish_miss_free_rays/obs500k7.zip'
+version = "complex_reward_diff"#punich_miss__free_rays" # name of rl model
 
 name = "version:" + version +"__gp_terminate:" + str(gp_terminate)
 
@@ -91,7 +92,7 @@ while iter < num_samples:
         observation, _ = env.reset(options=options)
 
 
-    plt.savefig("./plots_plakat/temp/rl_plots/"+name + '/iter_%i_step_%i_gp%i.pdf' %(iter,step,gps))
+    plt.savefig("./plots_plakat/temp/rl_plots/"+name + '/iter_%i_step_%i_gp%i.png' %(iter,step,gps))
     step += 1
 
 env.close()
