@@ -1,4 +1,7 @@
-# tum-adlr-02
+# Tactile Exploration of Objects (tum-adlr-02)
+- [Click here to view the *Project Report*](presenation_resources/ADLR_final_report.pdf)
+- [Click here to view the *Project Poster*](presenation_resources/adlr-02-poster.pdf)
+
 
 ## Requirements
 
