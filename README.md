@@ -1,6 +1,6 @@
 # Tactile Exploration of Objects (tum-adlr-02)
 
-![](outputs/presenation_resources/video_readme.gif)
+![](outputs/presenation_resources/video_readme_c.gif)
 
 - Robot grasping relies on accurate 3D models from
 sensory data of depth cameras, cameras or tactile exploration.

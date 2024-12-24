@@ -4,7 +4,7 @@ testing.ipynb
 runs/
 outputs/rl_runs/
 outputs/rl_models/
-outputs/plots_plakat
+outputs/plots_plakat/
 .ipynb_checkpoints
 intersection_test.py
 outputs/reconstruction_models/trained_rec.pkl
@@ -12,4 +12,4 @@ outputs/reconstruction_models/best_trial.pkl
 .DS_Store
 smoke_test.zip
 
-outputs/plots_plakat/temp
+outputs/plots_plakat/temp/
