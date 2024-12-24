@@ -115,6 +115,7 @@ def train_reconstruction(config, train_set: Dataset, eval_set: Dataset):
                     % (epoch + 1, i + 1, running_loss / epoch_steps)
                 )
                 running_loss = 0.0
+        
 
         # Validation loss
         val_loss = 0.0
@@ -141,8 +142,9 @@ def train_reconstruction(config, train_set: Dataset, eval_set: Dataset):
 
             checkpoint = Checkpoint.from_directory(checkpoint_dir)
             train.report(
-                {"loss": val_loss / val_steps, "epoch": epoch},
+                {"loss": val_loss / val_steps,"train_loss": running_loss / epoch_steps, "epoch": epoch},
                 checkpoint=checkpoint,
             )
+        
 
     print("Finished Training")

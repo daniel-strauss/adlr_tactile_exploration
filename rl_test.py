@@ -56,7 +56,7 @@ eval_env.reset()
 if debug_mode:
     n_steps = 2000
     learn_steps = 20000
-    iter = 0#10
+    iter = 10
 else:
     n_steps = 2000
     learn_steps = 50000

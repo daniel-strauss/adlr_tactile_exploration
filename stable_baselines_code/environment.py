@@ -15,15 +15,11 @@ from util_functions import from_torch, add_color_dim, two_img_to_one, img_array_
 
 class ShapeEnv(gym.Env):
     """Custom Environment that follows gym interface"""
-    metadata = {'render.modes': ['human'], "render_fps": 30}
+    metadata = {'render.modes': ['human', 'matrix'], "render_fps": 30}
 
     res = 256  #todo, automate res extraction from data?
 
     max_steps = 10
-
-
-
-
     def __init__(self, rec_net, dataset, reward_func, observation_1D=False, smoke=False):
 
         super(ShapeEnv, self).__init__()
@@ -125,6 +121,8 @@ class ShapeEnv(gym.Env):
         self.info["losses"] = self.losses
         self.info["metrics"] = self.metrics
         self.info["reconstruction"] = self.reconstruction_img
+        self.info['missed'] = 'missed' in occurrences
+        self.info['double'] = 'double' in occurrences
 
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
@@ -135,7 +133,6 @@ class ShapeEnv(gym.Env):
         self.terminated = False
         self.truncated = False
         self.info = {}
-
         sample = self.new_sample(options)
 
         self.label = sample['label']
@@ -156,9 +153,14 @@ class ShapeEnv(gym.Env):
 
 
     def render(self, mode='human', all_rcs=False):
+        if mode == 'matrix':
+            self.matrix()
+            return
+        
         if not self.render_initialized:
             plt.ion()
             self.fig, (self.ax_1, self.ax_2) = plt.subplots(1, 2, figsize=(12, 6))
+            plt.tight_layout()
             plt.show()
             self.render_initialized = True
 
@@ -210,7 +212,7 @@ class ShapeEnv(gym.Env):
     ############################# Helpfull Functions ############################
 
     def new_sample(self, options):
-        if options is not None and 'index' in options:
+        if not options is None and 'index' in options:
             index = options['index']
         else:
             index = np.random.randint(0, len(self.dataset))
@@ -260,3 +262,43 @@ class ShapeEnv(gym.Env):
     def num_pgs(self):
         return len(self.grasp_points)
 
+    def matrix(self):
+        if not self.render_initialized:
+            plt.ion()
+            self.fig, self.axs = plt.subplots(2, 5, figsize=(13, 5))
+            plt.axis('off')
+            plt.tight_layout()
+            plt.show()
+            self.render_initialized = True
+        
+        x = (self.step_i-1) % 5
+
+        if self.step_i < 6:
+            y = 0
+        else:
+            y = 1
+
+        self.axs[y, x].clear()
+        self.axs[y, x].axis('off')
+        self.axs[y, x].title.set_text(self.step_i)
+        self.axs[y, x].imshow(convert_for_imshow(
+            add_zero_channel(
+                two_img_to_one(self.outline_img, self.reconstruction_img > 0.5)), cs = self.colorscheme))
+
+        if len(self.grasp_points) > 0:
+            gpa = np.array(self.grasp_points)
+            self.axs[y, x].plot(gpa[-1][0], gpa[-1][1], 'o', color="black", label='last grasp point', zorder=5)
+            self.axs[y, x].scatter(gpa[0:-1, 0], gpa[0:-1, 1], s=10, color=self.colorscheme[2], label= "grasp points", zorder=5)
+
+        # plot circle
+        self.axs[y, x].plot(self.c_rr, self.c_cc, 'o', color=self.colorscheme[3], markersize=1)
+
+        self.axs[y, x].plot(self.rc_points[-1][0, 0], self.rc_points[-1][0, 1],'o',
+                       color=self.colorscheme[2], label='alpha')
+        self.axs[y, x].plot(self.rc_points[-1][1, 0], self.rc_points[-1][1, 1],'o',
+                       color=self.colorscheme[3]*0.5, label='beta')
+        self.axs[y, x].scatter(self.rc_line[0], self.rc_line[1], s=.5, color=self.colorscheme[3]*0.8,
+                          label='current ray cast',zorder=3)
+        self.fig.canvas.draw()
+        plt.pause(.1)
+            

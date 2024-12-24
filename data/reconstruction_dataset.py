@@ -133,12 +133,6 @@ class ReinforcementDataset(Dataset):
         return sample
 
 
-"""
-Transformations:
-    ToTensor (mandatory): Converts numpy images to torch images
-    RandomOrientation (optional): Randomly orientates both image and label.
-        Data augmentation technique.
-"""
 
 
 class ToTensor(object):

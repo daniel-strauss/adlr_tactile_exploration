@@ -1,4 +1,6 @@
 import io
+import warnings
+
 import tqdm
 from neural_nets.models.unet import UNet3
 from skimage.morphology import convex_hull_image
@@ -44,6 +46,8 @@ class RecNet():
             self.device = torch.device('cpu')
         else:
             self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            if self.device == "cpu":
+                warnings.warn("RecNet running on cpu, even though cuda was specified.")
         self.rec_net.to(self.device)
         self.rec_net.eval()
 
@@ -60,20 +64,26 @@ class RecNet():
             metric = torch.logical_and(rec, lab).float().sum() * 100 / n
         return loss.item(), metric.item(), reconstruction[0].cpu().detach().numpy()
     
-    def infer_dataset(self, dataset, batch_size=32):
+    def infer_dataset(self, dataset, batch_size=16):
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
         total_loss = 0.0
+        total_metric = 0.0
         steps = 0
         for batch in tqdm.tqdm(loader):
             with torch.no_grad():
                 inputs = batch['image'].to(self.device)
                 labels = batch['label'].to(self.device)
-
                 outputs = self.rec_net(inputs)
                 loss = self.loss_func(outputs, labels)
                 total_loss += loss.cpu().numpy()
                 steps += 1
-        return total_loss / steps
+
+                rec = (outputs >= 0.5)
+                lab = (labels > 0)
+                n = torch.logical_or(rec, lab).float().sum()
+                total_metric += torch.logical_and(rec, lab).float().sum() * 100 / n
+
+        return total_loss / steps, total_metric / steps
         
 class DummyRecNet(torch.nn.Module):
     def forward(self, x):
