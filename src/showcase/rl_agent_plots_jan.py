@@ -4,6 +4,8 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from stable_baselines3 import PPO
+from torch.utils.data import Subset
+
 from src.neural_nets.rec_net import RecNet, DummyRecNet
 from src.neural_nets.utility_functions import load_rl_data
 
@@ -26,6 +28,14 @@ name = "version:" + version +"_gp_terminate:" + str(gp_terminate)
 os.makedirs("plots_plakat/temp/rl_plots/"+name, exist_ok=True)
 
 
+train_set, eval_set, test_set = load_rl_data(transform=None)
+test_set = Subset(test_set, [36, 71, 354, 112, 149])
+
+
+num_samples = len(test_set)
+print("num_samples: ", num_samples)
+
+
 
 class CPU_Unpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -41,10 +51,6 @@ options = {"index" : 0}
 
 rec_net = RecNet()
 
-train_set, eval_set, test_set = load_rl_data(transform=None)
-
-num_samples = len(test_set)
-print(num_samples)
 
 
 env = ShapeEnv(rec_net, test_set, complex_reward, smoke=False)
