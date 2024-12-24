@@ -11,7 +11,6 @@ Class that provides:
 '''
 import time
 import warnings
-import builtins
 import datetime
 import tempfile
 from typing import Callable
@@ -26,9 +25,6 @@ from pathlib import Path
 from ray import train
 from ray.train import Checkpoint, get_checkpoint
 import ray.cloudpickle as pickle
-
-from data.model_classes import ModelClass
-from data.reconstruction_dataset import show_datatripple
 
 
 # Function to count the number of parameters
@@ -51,7 +47,7 @@ class NonTHparams():
 
     epochs: int = 50
 
-    # proportion of dataset to be training data
+    # proportion of dataset to be training data_preprocessing
     train_prop: float = 0.8
 
     #logging
@@ -174,7 +170,7 @@ class Trainer:
         checkpoint = get_checkpoint()
         if checkpoint:
             with checkpoint.as_directory() as checkpoint_dir:
-                data_path = Path(checkpoint_dir) / "data.pkl"
+                data_path = Path(checkpoint_dir) / "data_preprocessing.pkl"
                 with open(data_path, "rb") as fp:
                     checkpoint_state = pickle.load(fp)
                 start_epoch = checkpoint_state["epoch"]
@@ -201,7 +197,7 @@ class Trainer:
             for i, batch in enumerate(train_loader):
                 # todo: output should be segmentation map, read an article about it
 
-                # measure time to load data
+                # measure time to load data_preprocessing
                 st_data_load = time.time()
                 inputs = batch['image'].to(self.device)
                 labels = batch['label'].to(self.device)
@@ -215,7 +211,7 @@ class Trainer:
                 optimizer.step()
 
                 sum_train_loss += loss.item()
-                # log training data every log_train_period batches
+                # log training data_preprocessing every log_train_period batches
                 if ((i + epoch * num_t_batches) % self.nt_h.log_train_period == self.nt_h.log_train_period - 1
                         or (self.nt_h.log_train_period == -1 and i == num_t_batches - 1)):
 
@@ -313,7 +309,7 @@ class Trainer:
                         "optimizer_state_dict": optimizer.state_dict(),
                     }
                     with tempfile.TemporaryDirectory() as checkpoint_dir:
-                        data_path = Path(checkpoint_dir) / "data.pkl"
+                        data_path = Path(checkpoint_dir) / "data_preprocessing.pkl"
                         with open(data_path, "wb") as fp:
                             pickle.dump(checkpoint_data, fp)
 

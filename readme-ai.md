@@ -63,7 +63,7 @@ The adlrtactileexploration project addresses the challenge of tactile exploratio
 ```sh
 └── adlr_tactile_exploration/
     ├── README.md
-    ├── data
+    ├── data_preprocessing
     │   ├── dataconverter.py
     │   ├── model_classes.py
     │   └── reconstruction_dataset.py

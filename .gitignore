@@ -1,14 +1,14 @@
-datasets/
+data/
 __pycache__
 testing.ipynb
 runs/
-rl_runs/
-rl_models/
+outputs/rl_runs/
+outputs/rl_models/
 .ipynb_checkpoints
 intersection_test.py
-neural_nets/trained_rec.pkl
-neural_nets/best_trial.pkl
+outputs/reconstruction_models/trained_rec.pkl
+outputs/reconstruction_models/best_trial.pkl
 .DS_Store
 smoke_test.zip
 
-plots_plakat/temp
+outputs/plots_plakat/temp
