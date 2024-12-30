@@ -2,7 +2,7 @@
 
 ![](outputs/presenation_resources/video_readme.gif)
 
-Robot grasping relies on accurate 3D models from
+Robot grasping relies on accurate spatial models from
 sensory data of depth cameras, cameras or tactile exploration.
 Related work relies often on point cloud data from cameras
 in combination with sparse tactile data. We explore a novel
