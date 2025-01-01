@@ -2,12 +2,12 @@
 
 ![](outputs/presenation_resources/video_readme.gif)
 
-Robot grasping relies on accurate 3D models from
+Robot grasping relies on accurate spatial models from
 sensory data of depth cameras, cameras or tactile exploration.
 Related work relies often on point cloud data from cameras
 in combination with sparse tactile data. We explore a novel
 approach to tactile exploration with only sparse tactile data
-availabe. For this task we create our own dataset, train a
+availabe. For this task we prepare our own dataset, train a
 reconstruction network for shape prediction and enhance the
 tactile exploration with reinforcement learning. The results show
 an increase in performance in comparison to a random policy.
