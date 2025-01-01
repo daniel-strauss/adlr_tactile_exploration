@@ -26,7 +26,7 @@ version = "complex_reward_diff"#punich_miss__free_rays" # name of rl model
 name = "version:" + version +"__gp_terminate:" + str(gp_terminate)
 
 
-os.makedirs("plots_plakat/temp/rl_plots/"+name, exist_ok=True)
+os.makedirs("outputs/plots_plakat/temp/rl_plots/"+name, exist_ok=True)
 
 # use dummy rec net to save ram, for testing
 use_dummy_rec_net = False

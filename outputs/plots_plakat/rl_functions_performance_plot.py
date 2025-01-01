@@ -8,9 +8,9 @@ from color_shemes import main_colorscheme
 x_steps = False
 
 if x_steps:
-    data_path = 'plots_plakat/plot_data/rl_policies_statistics.pkl'
+    data_path = 'outputs/plots_plakat/plot_data/rl_policies_statistics.pkl'
 else:
-    data_path = 'plots_plakat/plot_data/rl_policies_statistics_gp.pkl'
+    data_path = 'outputs/plots_plakat/plot_data/rl_policies_statistics_gp.pkl'
 
 
 name_mask = {
@@ -64,9 +64,9 @@ plt.legend()
 plt.tight_layout()
 
 if x_steps:
-    plt.savefig('plots_plakat/temp/performance_plot_steps.png', dpi=300)
+    plt.savefig('outputs/plots_plakat/temp/performance_plot_steps.png', dpi=300)
 else:
-    plt.savefig('plots_plakat/temp/performance_plot_gps.png', dpi=300)
+    plt.savefig('outputs/plots_plakat/temp/performance_plot_gps.png', dpi=300)
 
 print("show")
 

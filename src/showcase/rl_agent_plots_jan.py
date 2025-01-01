@@ -25,7 +25,7 @@ version = "Abs" # name of rl model
 filename = pol_abs
 
 name = "version:" + version +"_gp_terminate:" + str(gp_terminate)
-os.makedirs("plots_plakat/temp/rl_plots/"+name, exist_ok=True)
+os.makedirs("outputs/plots_plakat/temp/rl_plots/"+name, exist_ok=True)
 
 
 train_set, eval_set, test_set = load_rl_data(transform=None)
