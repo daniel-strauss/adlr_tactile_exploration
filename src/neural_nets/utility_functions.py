@@ -9,6 +9,8 @@ from ray import train
 from ray.train import Checkpoint, get_checkpoint
 import ray.cloudpickle as pickle
 from pathlib import Path
+from prettytable import PrettyTable
+
 
 standard_config: dict = {
     'batch_size': 256,
@@ -50,9 +52,26 @@ def load_rl_data(dir='./data/2D_shapes', transform=ToTensor()):
 
     return train_set, eval_set, test_set
 
+# from https://stackoverflow.com/questions/49201236/check-the-total-number-of-parameters-in-a-pytorch-model
+def num_params(model):
+    table = PrettyTable(["Modules", "Parameters"])
+    total_params = 0
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            continue
+        params = parameter.numel()
+        table.add_row([name, params])
+        total_params += params
+    print(table)
+    print(f"Total Trainable Params: {total_params}")
+    return total_params
 
-def train_reconstruction(config, train_set: Dataset, eval_set: Dataset):
+def train_reconstruction(config, train_set: Dataset, eval_set: Dataset, print_num_parameters=False):
     model = config['model'](config)
+
+    if print_num_parameters:
+        num_params(model)
+
     device = 'cpu'
     if torch.cuda.is_available():
         device = 'cuda:0'

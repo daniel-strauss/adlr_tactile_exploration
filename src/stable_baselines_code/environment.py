@@ -28,10 +28,9 @@ class ShapeEnv(gym.Env):
         self.c_rr, self.c_cc = ski.draw.circle_perimeter(mid, mid, r)
 
         # Define action and observation space
-        # They must be gym.spaces objects
-        # Example when using discrete actions:
         self.action_space = spaces.MultiDiscrete([len(self.c_cc) for _ in range(2)])
-        # Example for using image as input:
+
+        # using image as input:
         self.observation_1D = observation_1D
         if self.observation_1D:
             self.observation_space = spaces.Box(low=0, high=255, shape=(1, self.res, self.res), dtype=np.uint8)
