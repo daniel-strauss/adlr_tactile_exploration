@@ -1,6 +1,6 @@
 # Tactile Exploration of Objects (tum-adlr-02)
 
-![](outputs/presenation_resources/video_readme.gif)
+![](docs/video_readme.gif)
 
 Robot grasping relies on accurate spatial models from
 sensory data of depth cameras, cameras or tactile exploration.
@@ -12,8 +12,8 @@ reconstruction network for shape prediction and enhance the
 tactile exploration with reinforcement learning. The results show
 an increase in performance in comparison to a random policy.
  
-- [Click here to view the *Project Report*](docs/presenation_resources/ADLR_final_report.pdf)
-- [Click here to view the *Project Poster*](docs/presenation_resources/adlr-02-poster.pdf)
+- [Click here to view the *Project Report*](docs/ADLR_final_report.pdf)
+- [Click here to view the *Project Poster*](docs/adlr-02-poster.pdf)
 
 
 ## Requirements

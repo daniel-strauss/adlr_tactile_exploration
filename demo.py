@@ -15,6 +15,7 @@ Run a demo of a trained RL agent in the ShapeEnv environment.
 
 You will see a plot indicating the agent's observations, reconstructions, actions and ground truths.
 It is expected to change at every action the agent takes.
+The plot frames will look like the GIF in the README.
 
 16 GB GPU RAM recommended if using a full RecNet model.
 set use_dummy_recnet = True to use a dummy RecNet that does not require model 
