@@ -29,7 +29,7 @@ name = "version:" + version +"__gp_terminate:" + str(gp_terminate)
 os.makedirs("outputs/plots_plakat/temp/rl_plots/"+name, exist_ok=True)
 
 # use dummy rec net to save ram, for testing
-use_dummy_rec_net = False
+use_dummy_rec_net = True
 
 num_samples = 15
 

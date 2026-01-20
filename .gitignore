@@ -11,5 +11,7 @@ outputs/reconstruction_models/trained_rec.pkl
 outputs/reconstruction_models/best_trial.pkl
 .DS_Store
 smoke_test.zip
+.idea/
+.vscode/
 
 outputs/plots_plakat/temp/
