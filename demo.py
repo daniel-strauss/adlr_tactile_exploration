@@ -1,10 +1,4 @@
-
-
-
-import argparse
 import os
-import numpy as np
-from matplotlib import pyplot as plt
 from stable_baselines3 import PPO
 from torch.utils.data import Subset
 
@@ -13,6 +7,19 @@ from src.neural_nets.utility_functions import load_rl_data
 from src.stable_baselines_code.environment import ShapeEnv
 from src.stable_baselines_code.reward_functions import complex_reward
 
+"""
+Run a demo of a trained RL agent in the ShapeEnv environment.
+
+: cd to/project/root
+: python -m demo  
+
+You will see a plot indicating the agent's observations, reconstructions, actions and ground truths.
+It is expected to change at every action the agent takes.
+
+16 GB GPU RAM recommended if using a full RecNet model.
+set use_dummy_recnet = True to use a dummy RecNet that does not require model 
+files and uses minimal RAM. You may use this option to see if the code runs on your computer.
+"""
 
 
 # --- User-editable variables ---
@@ -22,7 +29,7 @@ from src.stable_baselines_code.reward_functions import complex_reward
 # - rec_net_states_path: Path to RecNet states file
 # - policy_path: Path to RL policy
 
-use_dummy_recnet = True  # Set True for dummy RecNet (quick test, no model files needed)
+use_dummy_recnet = False  # Set True for dummy RecNet (quick test, no reconstruciton net needed)
 rec_net_trial_path = './outputs/reconstruction_models/best_trial.pkl'
 rec_net_states_path = './outputs/reconstruction_models/trained_rec.pkl'
 policy_path = './outputs/rl_models/daniel/punish_miss_free_rays/obs500k9'  # adjust if needed

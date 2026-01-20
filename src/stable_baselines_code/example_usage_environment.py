@@ -16,25 +16,3 @@ class DummyRecNet(torch.nn.Module):
 
         return hull
 
-if __name__ == 'main':
-    raise NotImplementedError("The code below is depricated and has been moved to rl_test.")
-    # Instantiate the environment
-    rec_net = DummyRecNet()
-    dataset = None  # Replace with actual dataset
-    loss_func = nn.BCELoss()
-    reward_func = dummy_reward
-
-    env = ShapeEnv(rec_net, dataset, loss_func, reward_func)
-
-    # Reset environment
-    observation = env.reset()
-
-    # Run a sample loop
-    for _ in range(env.max_steps):
-        action = env.action_space.sample()  # Sample random action
-        observation, reward, done, info = env.step(action)
-        env.render()  # Optional: Implement the render function for visualization
-        if done:
-            break
-
-    env.close()

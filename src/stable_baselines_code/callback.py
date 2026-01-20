@@ -139,33 +139,3 @@ class TensorboardCallback(BaseCallback):
         pass
 
 
-"""
-
-def render(self, mode='human'):
-    
-    if len(self.grasp_points) > 0:
-        gpa = np.array(self.grasp_points)
-        self.ax_1.plot(gpa[-1][0], gpa[-1][1], 'ro', label='Last Grasp Point')
-        self.ax_1.scatter(gpa[0:-1, 0], gpa[0:-1, 1], s=10, c='orange')
-
-    self.ax_1.plot(self.c_rr, self.c_cc, 'b.', markersize=1)
-
-    self.ax_1.plot(self.rc_points[0, 0], self.rc_points[0, 1], 'go', label='Alpha')
-    self.ax_1.plot(self.rc_points[1, 0], self.rc_points[1, 1], 'bo', label='Beta')
-    self.ax_1.scatter(self.rc_line[0], self.rc_line[1], s=.5, c='r')
-
-    self.ax_1.legend()
-
-    self.ax_2.clear()
-    if self.observation_1D:
-        self.ax_2.imshow(self.convert_for_imshow(self.observation))
-    else:
-        self.ax_2.imshow(self.convert_for_imshow(self.add_zero_channel(self.observation)))
-    self.fig.canvas.draw()
-    plt.pause(.1)
-
-        return True
-
-
-
-"""
