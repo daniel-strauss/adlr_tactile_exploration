@@ -233,34 +233,6 @@ project-root/
 			</details>
 		</blockquote>
 	</details>
-	<details>
-				<summary><b>neural_nets</b></summary>
-				<blockquote>
-					<table>
-					<tr>
-						<td><b><a href='https://github.com/daniel-strauss/adlr_tactile_exploration.git/blob/master/deprecated/neural_nets/trainer.py'>trainer.py</a></b></td>
-						<td>- Facilitates neural network training by instantiating models, optimizers, and dataloaders based on hyperparameters<br>- Logs progress using TensorBoard and leverages Ray for hyperparameter search<br>- The class aims to streamline training processes and prevent redundant code for managing neural network training tasks within the project architecture.</td>
-					</tr>
-					<tr>
-						<td><b><a href='https://github.com/daniel-strauss/adlr_tactile_exploration.git/blob/master/deprecated/neural_nets/weight_inits.py'>weight_inits.py</a></b></td>
-						<td>- Initialize neural network weights using Kaiming and Xavier methods for Convolutional and Linear layers, respectively<br>- Ensure proper initialization for both weights and biases to improve model training and convergence.</td>
-					</tr>
-					</table>
-					<details>
-						<summary><b>models</b></summary>
-						<blockquote>
-							<table>
-							<tr>
-								<td><b><a href='https://github.com/daniel-strauss/adlr_tactile_exploration.git/blob/master/deprecated/neural_nets/models/unet.py'>unet.py</a></b></td>
-								<td>- Implements a UNet neural network with adaptable depth and configurable parameters for image segmentation tasks<br>- The code defines encoder and decoder blocks, along with the forward pass logic for processing input images through the network architecture.</td>
-							</tr>
-							</table>
-						</blockquote>
-					</details>
-				</blockquote>
-			</details>
-		</blockquote>
-	</details>
 	<details> <!-- outputs Submodule -->
 		<summary><b>outputs</b></summary>
 		<blockquote>
