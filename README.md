@@ -12,8 +12,8 @@ reconstruction network for shape prediction and enhance the
 tactile exploration with reinforcement learning. The results show
 an increase in performance in comparison to a random policy.
  
-- [Click here to view the *Project Report*](outputs/presenation_resources/ADLR_final_report.pdf)
-- [Click here to view the *Project Poster*](outputs/presenation_resources/adlr-02-poster.pdf)
+- [Click here to view the *Project Report*](docs/presenation_resources/ADLR_final_report.pdf)
+- [Click here to view the *Project Poster*](docs/presenation_resources/adlr-02-poster.pdf)
 
 
 ## Requirements
