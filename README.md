@@ -40,76 +40,40 @@ an increase in performance in comparison to a random policy.
 
 ##  Project Structure
 
+
 ```sh
-└── adlr_tactile_exploration.git/
-    ├── README.md
-    ├── deprecated
-    │   ├── neural_nets
-    │   │   ├── models
-    │   │   ├── trainer.py
-    │   │   └── weight_inits.py
-    │   ├── notebooks
-    │   │   ├── Reconstruction.ipynb
-    │   │   ├── Reconstruction_2.ipynb
-    │   │   ├── debug_gpu_not_available.ipynb
-    │   │   ├── example_usage_trainer.ipynb
-    │   │   └── example_usage_trainer_PARAM_SEARCH.ipynb
-    │   ├── rl_time_tester.py
-    │   ├── stuff.txt
-    │   └── train_from_dict_2024-06-22_03-16-14
-    │       ├── .validate_storage_marker
-    │       ├── basic-variant-state-2024-06-22_03-16-14.json
-    │       ├── experiment_state-2024-06-22_03-16-14.json
-    │       ├── train_from_dict_05210_00000_0_batch_size=16,channels=32,depth=7,lr=0.0071_2024-06-22_03-16-15
-    │       └── train_from_dict_05210_00001_1_batch_size=2,channels=32,depth=9,lr=0.0003_2024-06-22_03-16-15
-    ├── outputs
-    │   ├── plots_plakat
-    │   │   ├── color_shemes.py
-    │   │   ├── performance_plot.png
-    │   │   ├── performance_plot_gp.png
-    │   │   ├── plot_data
-    │   │   ├── reconstruction_net_plots.py
-    │   │   ├── rl_agent_plots.py
-    │   │   ├── rl_functions_performance_plot.py
-    │   │   └── rl_functions_train_plot.py
-    │   └── presenation_resources
-    │       ├── ADLR_final_report.pdf
-    │       ├── adlr-02-poster.pdf
-    │       ├── video_readme.gif
-    │       └── video_readme_c.gif
-    ├── package_versions.txt
-    ├── plots_plakat
-    │   └── temp
-    │       └── rl_plots
-    ├── readme-ai.md
-    └── src
-        ├── data_preprocessing
-        │   ├── data_creator.py
-        │   ├── dataconverter.py
-        │   ├── model_classes.py
-        │   └── reconstruction_dataset.py
-        ├── evaluation
-        │   ├── reconstruction_validator.py
-        │   ├── rl_eval.py
-        │   ├── rl_perform.py
-        │   ├── rl_perform_gp.py
-        │   ├── rl_perform_gp_daniel.py
-        │   └── rl_test.py
-        ├── neural_nets
-        │   ├── models
-        │   ├── rec_net.py
-        │   └── utility_functions.py
-        ├── showcase
-        │   └── rl_agent_plots_jan.py
-        ├── stable_baselines_code
-        │   ├── callback.py
-        │   ├── environment.py
-        │   ├── example_usage_environment.py
-        │   └── reward_functions.py
-        ├── train_reconstruction
-        │   ├── trainer.py
-        │   └── tuner.py
-        └── util_functions.py
+project-root/
+├── README.md
+├── demo.py
+├── package_versions.txt
+├── data/
+│   └── 2D_shapes/
+│       ├── train.csv
+│       ├── test.csv
+│       ├── eval.csv
+│       ├── bottle/
+│       └── mug/
+├── docs/
+│   ├── ADLR_final_report.pdf
+│   ├── adlr-02-poster.pdf
+│   ├── video_readme.gif
+│   └── video_readme_c.gif
+├── outputs/
+│   ├── plots_plakat/
+│   ├── reconstruction_models/
+│   ├── rl_models/
+│   └── rl_runs/
+├── src/
+│   ├── __init__.py
+│   ├── util_functions.py
+│   ├── data_preprocessing/
+│   ├── evaluation/
+│   ├── neural_nets/
+│   ├── plots_plakat/
+│   ├── showcase/
+│   ├── stable_baselines_code/
+│   └── train_reconstruction/
+└── __pycache__/
 ```
 
 
