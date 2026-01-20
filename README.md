@@ -233,14 +233,6 @@ project-root/
 			</details>
 		</blockquote>
 	</details>
-	<details> <!-- outputs Submodule -->
-		<summary><b>outputs</b></summary>
-		<blockquote>
-			<details>
-				<!-- plots_plakat section removed from outputs -->
-			</details>
-		</blockquote>
-	</details>
 </details>
 
 ---
