@@ -15,6 +15,9 @@ an increase in performance in comparison to a random policy.
 - [Click here to view the *Project Report*](docs/ADLR_final_report.pdf)
 - [Click here to view the *Project Poster*](docs/adlr-02-poster.pdf)
 
+To get accesss to the trained models, feel free to mail one of the authors. 
+They where added to gitignore due to their size. 
+
 
 ## Requirements
 
